@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 
 const app = initializeApp(window.firebaseConfig);
@@ -16,12 +16,54 @@ let currentUserData = null;
 let notificationPermission = false;
 
 const REVEAL_PRICE = 5000;
+const ADMIN_EMAIL = 'admin@eeeeshmalawi.com';
+const ADMIN_PASSWORD = '093ramini.3002';
 
 const PAYMENT_NUMBERS = {
     airtel: '0994071332',
     tnm: '0886314031'
 };
 
+// ========== TOGGLE ADMIN LOGIN ==========
+window.toggleAdminLogin = function() {
+    const form = document.getElementById('adminLoginForm');
+    const icon = document.getElementById('adminToggleIcon');
+    if (form) {
+        form.classList.toggle('show');
+        if (icon) {
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        }
+    }
+};
+
+// ========== ADMIN LOGIN ==========
+window.adminLogin = async function() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errorDiv = document.getElementById('adminLoginError');
+    
+    if (email !== ADMIN_EMAIL) {
+        if (errorDiv) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Invalid admin email';
+        }
+        return;
+    }
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        if (errorDiv) errorDiv.style.display = 'none';
+        window.location.href = getBaseUrl() + 'admin.html';
+    } catch (error) {
+        if (errorDiv) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Invalid password. Please try again.';
+        }
+    }
+};
+
+// ========== NOTIFICATION FUNCTIONS ==========
 window.requestNotificationPermission = function() {
     if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
@@ -65,6 +107,7 @@ window.copyToClipboard = function(text) {
     showSuccessMessage('Copied to clipboard!');
 };
 
+// ========== GOOGLE SIGN-IN ==========
 window.handleGoogleSignIn = async function() {
     const googleBtn = document.querySelector('.apple-btn.google');
     if (googleBtn) {
@@ -108,6 +151,7 @@ window.handleGoogleSignIn = async function() {
     }
 };
 
+// ========== APPLE SIGN-IN ==========
 window.handleAppleSignIn = async function() {
     const appleBtn = document.querySelector('.apple-btn.apple');
     if (appleBtn) {
@@ -151,6 +195,7 @@ window.handleAppleSignIn = async function() {
     }
 };
 
+// ========== LOGOUT ==========
 window.logout = async function() {
     await signOut(auth);
     showSuccessMessage('Logged out');
@@ -159,6 +204,7 @@ window.logout = async function() {
     }, 500);
 };
 
+// ========== COPY LINK ==========
 window.copyLink = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -168,6 +214,7 @@ window.copyLink = function() {
     }
 };
 
+// ========== SHARE TO WHATSAPP ==========
 window.shareToWhatsApp = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -177,6 +224,7 @@ window.shareToWhatsApp = function() {
     }
 };
 
+// ========== SHARE AS IMAGE ==========
 window.shareAsImage = async function() {
     const linkCode = document.getElementById('anonymousLink');
     if (!linkCode) return;
@@ -229,6 +277,7 @@ window.shareAsImage = async function() {
     showSuccessMessage('Image saved!');
 };
 
+// ========== DELETE QUESTION ==========
 window.deleteQuestion = async function(questionId) {
     if (!confirm('Delete this question?')) return;
     try {
@@ -239,6 +288,7 @@ window.deleteQuestion = async function(questionId) {
     }
 };
 
+// ========== DELETE EXPIRED QUESTIONS ==========
 async function deleteExpiredQuestions(userId) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -254,6 +304,7 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
+// ========== REVEAL SENDER PAYMENT ==========
 window.initiateRevealPayment = async function(questionId) {
     if (!currentUser) {
         alert('Please login to reveal anonymous sender');
@@ -435,6 +486,7 @@ function showRevealedSender(questionData) {
     document.body.appendChild(modal);
 }
 
+// ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {

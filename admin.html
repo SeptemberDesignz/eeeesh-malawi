@@ -158,23 +158,6 @@
             padding: 60px;
             color: #8e8e93;
         }
-        .admin-login-box {
-            max-width: 400px;
-            margin: 100px auto;
-            background: white;
-            border-radius: 32px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-        }
-        .admin-login-box h2 {
-            margin-bottom: 20px;
-        }
-        .login-error {
-            color: #ff3b30;
-            margin-top: 10px;
-            display: none;
-        }
         @media (max-width: 768px) {
             .payment-info {
                 flex-direction: column;
@@ -188,77 +171,52 @@
     </style>
 </head>
 <body>
-    <div id="adminLoginScreen" class="admin-login-box">
-        <i class="fas fa-shield-alt" style="font-size: 48px; color: #ff3b30; margin-bottom: 20px;"></i>
-        <h2>Admin Login</h2>
-        <p>Enter your admin credentials to access the panel</p>
-        <div class="input-icon">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="adminEmail" placeholder="Admin Email" class="apple-input">
-        </div>
-        <div class="input-icon">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="adminPassword" placeholder="Password" class="apple-input">
-        </div>
-        <button onclick="adminLogin()" class="apple-btn red">
-            <i class="fas fa-sign-in-alt"></i> Login to Admin Panel
-        </button>
-        <div id="loginError" class="login-error">
-            <i class="fas fa-exclamation-circle"></i> Invalid credentials
-        </div>
-        <p style="margin-top: 20px; font-size: 12px; color: #8e8e93;">
-            <i class="fas fa-shield-alt"></i> Secure admin area
-        </p>
-    </div>
-
-    <div id="adminDashboard" style="display: none;">
-        <div class="admin-container">
-            <div class="admin-header">
-                <h1>
-                    <i class="fas fa-shield-alt"></i>
-                    Eeeesh Malawi - Admin Panel
-                </h1>
-                <div style="display: flex; gap: 15px;">
-                    <span><i class="fas fa-user"></i> <span id="adminEmailDisplay"></span></span>
-                    <button onclick="adminLogout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                    <a href="dashboard.html" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none;">
-                        <i class="fas fa-home"></i> Back to Site
-                    </a>
-                </div>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>
+                <i class="fas fa-shield-alt"></i>
+                Eeeesh Malawi - Admin Panel
+            </h1>
+            <div style="display: flex; gap: 15px;">
+                <span><i class="fas fa-user"></i> <span id="adminEmailDisplay"></span></span>
+                <button onclick="adminLogout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+                <a href="index.html" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none;">
+                    <i class="fas fa-home"></i> Back to Site
+                </a>
             </div>
-            
-            <div class="admin-stats">
-                <div class="stat-card">
-                    <i class="fas fa-clock"></i>
-                    <div class="number" id="pendingCount">0</div>
-                    <div class="label">Pending Payments</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-check-circle"></i>
-                    <div class="number" id="completedCount">0</div>
-                    <div class="label">Completed Payments</div>
-                </div>
-                <div class="stat-card">
-                    <i class="fas fa-dollar-sign"></i>
-                    <div class="number" id="totalEarnings">0</div>
-                    <div class="label">Total Earnings (MWK)</div>
-                </div>
+        </div>
+        
+        <div class="admin-stats">
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div class="number" id="pendingCount">0</div>
+                <div class="label">Pending Payments</div>
             </div>
-            
-            <div class="payments-table">
-                <h3>
-                    <i class="fas fa-list"></i>
-                    Payment Requests
-                    <button onclick="refreshPayments()" style="margin-left: auto; background: none; border: none; cursor: pointer;">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </h3>
-                <div id="paymentsList">
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-pulse"></i> Loading payments...
-                    </div>
+            <div class="stat-card">
+                <i class="fas fa-check-circle"></i>
+                <div class="number" id="completedCount">0</div>
+                <div class="label">Completed Payments</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-dollar-sign"></i>
+                <div class="number" id="totalEarnings">0</div>
+                <div class="label">Total Earnings (MWK)</div>
+            </div>
+        </div>
+        
+        <div class="payments-table">
+            <h3>
+                <i class="fas fa-list"></i>
+                Payment Requests
+                <button onclick="refreshPayments()" style="margin-left: auto; background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </h3>
+            <div id="paymentsList">
+                <div class="empty-state">
+                    <i class="fas fa-spinner fa-pulse"></i> Loading payments...
                 </div>
             </div>
         </div>
@@ -276,44 +234,18 @@
     <script src="firebase-config.js"></script>
     <script type="module">
         import { initializeApp } from 'firebase/app';
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
-        import { getFirestore, collection, query, where, getDocs, updateDoc, doc, orderBy } from 'firebase/firestore';
+        import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+        import { getFirestore, collection, query, orderBy, getDocs, updateDoc, doc } from 'firebase/firestore';
 
         const app = initializeApp(window.firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const ADMIN_EMAIL = 'nicholaskenneth29@gmail.com';
-        const ADMIN_PASSWORD = '093ramini.2003';
-
-        window.adminLogin = async function() {
-            const email = document.getElementById('adminEmail').value.trim();
-            const password = document.getElementById('adminPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            
-            if (email !== ADMIN_EMAIL) {
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = 'Invalid admin email';
-                return;
-            }
-            
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                errorDiv.style.display = 'none';
-                document.getElementById('adminLoginScreen').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
-                document.getElementById('adminEmailDisplay').innerHTML = email;
-                loadPayments();
-            } catch (error) {
-                errorDiv.style.display = 'block';
-                errorDiv.textContent = 'Invalid password. Please try again.';
-            }
-        };
+        const ADMIN_EMAIL = 'admin@eeeeshmalawi.com';
 
         window.adminLogout = async function() {
             await signOut(auth);
-            document.getElementById('adminLoginScreen').style.display = 'block';
-            document.getElementById('adminDashboard').style.display = 'none';
+            window.location.href = 'index.html';
         };
 
         window.refreshPayments = function() {
@@ -452,13 +384,18 @@
             });
         }
         
+        async function getDoc(ref) {
+            const snapshot = await getDocs(ref);
+            return snapshot.docs[0];
+        }
+        
         onAuthStateChanged(auth, (user) => {
-            if (user && user.email === ADMIN_EMAIL) {
-                document.getElementById('adminLoginScreen').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
-                document.getElementById('adminEmailDisplay').innerHTML = user.email;
-                loadPayments();
+            if (!user || user.email !== ADMIN_EMAIL) {
+                window.location.href = 'index.html';
+                return;
             }
+            document.getElementById('adminEmailDisplay').innerHTML = user.email;
+            loadPayments();
         });
     </script>
 </body>
