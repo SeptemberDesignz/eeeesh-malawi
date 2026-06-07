@@ -1,7 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc } from 'firebase/firestore';
 
 // Initialize Firebase with your config
 const app = initializeApp(firebaseConfig);
@@ -10,7 +10,6 @@ const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 let currentUser = null;
-let recaptchaWidget = null;
 
 // Get base URL for GitHub Pages
 function getBaseUrl() {
@@ -20,18 +19,6 @@ function getBaseUrl() {
     }
     return '/';
 }
-
-// Initialize reCAPTCHA
-window.renderRecaptcha = function() {
-    const container = document.getElementById('recaptcha-container');
-    if (container && typeof grecaptcha !== 'undefined') {
-        recaptchaWidget = grecaptcha.render('recaptcha-container', {
-            sitekey: RECAPTCHA_SITE_KEY,
-            theme: 'light',
-            size: 'normal'
-        });
-    }
-};
 
 // Tab switching
 window.switchTab = function(tab) {
@@ -44,11 +31,6 @@ window.switchTab = function(tab) {
     } else {
         document.querySelector('.tab-btn:last-child').classList.add('active');
         document.getElementById('signupTab').classList.add('active');
-        setTimeout(() => {
-            if (typeof grecaptcha !== 'undefined' && !recaptchaWidget) {
-                window.renderRecaptcha();
-            }
-        }, 100);
     }
 };
 
@@ -70,7 +52,7 @@ window.handleLogin = async function() {
     }
 };
 
-// Signup with Email
+// Signup with Email (NO reCAPTCHA)
 window.handleSignup = async function() {
     const name = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
@@ -79,15 +61,6 @@ window.handleSignup = async function() {
     if (!email || !password || password.length < 6) {
         alert('Email and password (min 6 characters) required');
         return;
-    }
-    
-    // Verify reCAPTCHA
-    if (recaptchaWidget && typeof grecaptcha !== 'undefined') {
-        const token = grecaptcha.getResponse(recaptchaWidget);
-        if (!token) {
-            alert('Please complete the reCAPTCHA verification');
-            return;
-        }
     }
     
     try {
@@ -340,15 +313,4 @@ if (path.includes('dashboard.html')) {
     loadDashboard();
 } else if (path.includes('ask.html')) {
     loadAskPage();
-} else if (path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/')) {
-    // Wait for DOM to load then setup reCAPTCHA
-    window.addEventListener('load', () => {
-        if (document.getElementById('recaptcha-container')) {
-            setTimeout(() => {
-                if (typeof grecaptcha !== 'undefined') {
-                    window.renderRecaptcha();
-                }
-            }, 500);
-        }
-    });
 }
