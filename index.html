@@ -78,6 +78,37 @@
             box-shadow: 0 0 0 3px rgba(255,59,48,0.1);
         }
         
+        /* Premium Admin Login Button */
+        .admin-login-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .admin-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #2a2a3e, #262640);
+        }
+        .admin-login-btn:active {
+            transform: translateY(0);
+        }
+        .admin-login-btn i {
+            font-size: 16px;
+        }
+        
         /* Professional Login Buttons */
         .login-buttons {
             display: flex;
@@ -136,10 +167,37 @@
             font-size: 20px;
         }
         
+        /* Info Message Box */
+        .info-message {
+            background: linear-gradient(135deg, #e8f4fd 0%, #ffffff 100%);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .info-message i {
+            font-size: 20px;
+            color: #2196f3;
+            margin-top: 2px;
+        }
+        .info-message div {
+            flex: 1;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .info-message strong {
+            color: #1c1c1e;
+            font-size: 13px;
+        }
+        
         /* Explainer Section Styles */
         .explainer-section {
-            margin-top: 32px;
-            padding-top: 24px;
+            margin-top: 24px;
+            padding-top: 20px;
             border-top: 1px solid #e5e5ea;
         }
         .explainer-title {
@@ -243,6 +301,9 @@
             .step-content span {
                 font-size: 10px;
             }
+            .info-message {
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -266,6 +327,15 @@
                     <i class="fab fa-apple"></i>
                     <span>Sign in with Apple</span>
                 </button>
+            </div>
+            
+            <!-- Info Message - Important Note -->
+            <div class="info-message">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>📌 Important Note:</strong><br>
+                    To reveal who sent an anonymous question (MWK 5,000), <strong>both the sender and receiver must have Eeeesh Malawi accounts</strong>. If the sender is not logged in when asking, their identity cannot be revealed.
+                </div>
             </div>
             
             <!-- How It Works - Explainer Section -->
@@ -349,8 +419,10 @@
                         <i class="fas fa-lock"></i>
                         <input type="password" id="adminPassword" placeholder="Password" class="apple-input">
                     </div>
-                    <button onclick="adminLogin()" class="apple-btn red">
-                        <i class="fas fa-sign-in-alt"></i> Login as Admin
+                    <button onclick="adminLogin()" class="admin-login-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login as Admin</span>
+                        <i class="fas fa-shield-alt"></i>
                     </button>
                     <div id="adminLoginError" style="color: #ff3b30; font-size: 12px; margin-top: 10px; text-align: center; display: none;">
                         <i class="fas fa-exclamation-circle"></i> Invalid admin credentials
