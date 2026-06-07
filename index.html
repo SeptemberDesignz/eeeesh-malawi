@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Eeeesh Malawi — Ask Anonymously</title>
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -39,6 +38,11 @@
                 <button onclick="handleLogin()" class="apple-btn red">
                     <i class="fas fa-arrow-right"></i> Log in
                 </button>
+                <div style="text-align: right; margin-top: -8px;">
+                    <a href="#" onclick="forgotPassword()" style="font-size: 13px; color: #ff3b30; text-decoration: none;">
+                        <i class="fas fa-key"></i> Forgot Password?
+                    </a>
+                </div>
                 <div class="divider">or</div>
                 <button onclick="handleGoogleSignIn()" class="apple-btn google">
                     <i class="fab fa-google"></i> Continue with Google

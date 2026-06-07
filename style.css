@@ -194,6 +194,11 @@ textarea.apple-input {
     color: #4285f4;
 }
 
+.apple-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .divider {
     text-align: center;
     color: #8e8e93;
@@ -358,6 +363,26 @@ textarea.apple-input {
     font-size: 18px;
 }
 
+.share-image-btn {
+    background: #5856d6;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.share-image-btn:hover {
+    background: #4846c4;
+}
+
 .hint-text {
     font-size: 12px;
     color: #8e8e93;
@@ -411,7 +436,7 @@ textarea.apple-input {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .question-text {
@@ -436,6 +461,28 @@ textarea.apple-input {
 
 .delete-btn:hover {
     opacity: 0.7;
+}
+
+.question-meta {
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: #8e8e93;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.question-meta small {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.expiry-warning {
+    color: #ff3b30 !important;
+    background: rgba(255,59,48,0.1);
+    padding: 2px 8px;
+    border-radius: 100px;
 }
 
 .vote-buttons {
@@ -555,6 +602,43 @@ hr {
     border-top: 1px solid #e5e5ea;
 }
 
+.success-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2c5f2d;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -588,7 +672,7 @@ hr {
         width: 100%;
     }
     
-    .whatsapp-btn {
+    .whatsapp-btn, .share-image-btn {
         width: 100%;
     }
     

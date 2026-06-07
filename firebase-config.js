@@ -1,4 +1,3 @@
-// Firebase configuration for Eeeesh Malawi
 const firebaseConfig = {
     apiKey: "AIzaSyCiv3aN9H4EytnFx85rgkG7cCsog56YXUE",
     authDomain: "eeeesh-malawi.firebaseapp.com",
@@ -9,5 +8,4 @@ const firebaseConfig = {
     measurementId: "G-MYYN74DLQ7"
 };
 
-// Make available globally
 window.firebaseConfig = firebaseConfig;
