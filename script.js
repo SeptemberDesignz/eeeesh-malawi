@@ -17,7 +17,6 @@ let notificationPermission = false;
 
 const REVEAL_PRICE = 5000;
 const ADMIN_EMAIL = 'admin@eeeeshmalawi.com';
-const ADMIN_PASSWORD = '093ramini.3002';
 
 const PAYMENT_NUMBERS = {
     airtel: '0994071332',
@@ -304,7 +303,7 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
-// ========== PREMIUM PAYMENT MODAL ==========
+// ========== REVEAL SENDER PAYMENT ==========
 window.initiateRevealPayment = async function(questionId) {
     if (!currentUser) {
         alert('Please login to reveal anonymous sender');
@@ -525,9 +524,13 @@ window.submitPaymentConfirmation = async function(questionId) {
     }
 };
 
-function showRevealedSender(questionData) {
+// ========== SHOW REVEALED SENDER - FIXED ==========
+window.showRevealedSender = function(questionData) {
+    console.log("Showing revealed sender:", questionData);
+    
     const modal = document.createElement('div');
     modal.className = 'payment-modal';
+    modal.id = 'revealedModal';
     modal.innerHTML = `
         <div class="payment-modal-content">
             <div class="payment-modal-header">
@@ -538,7 +541,7 @@ function showRevealedSender(questionData) {
                     <h3>Sender Revealed!</h3>
                     <p>The anonymous sender has been identified</p>
                 </div>
-                <button class="close-modal" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</button>
+                <button class="close-modal" onclick="this.closest('.payment-modal').remove()">&times;</button>
             </div>
             <div class="payment-modal-body">
                 <div class="revealed-info">
@@ -555,14 +558,14 @@ function showRevealedSender(questionData) {
                         <p>This information is for your eyes only. Please respect privacy.</p>
                     </div>
                 </div>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="premium-submit-btn" style="margin-top: 16px;">
+                <button onclick="this.closest('.payment-modal').remove()" class="premium-submit-btn" style="margin-top: 16px;">
                     <i class="fas fa-check"></i> Close
                 </button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
-}
+};
 
 // ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
@@ -685,7 +688,7 @@ function renderQuestions(questions) {
                         <i class="fas fa-eye"></i> Reveal Sender (MWK ${REVEAL_PRICE.toLocaleString()})
                     </button>` : 
                     (q.revealedTo === currentUser?.uid ? 
-                        `<button onclick='showRevealedSender(${JSON.stringify(q).replace(/'/g, "\\'")})' class="reveal-btn revealed">
+                        `<button onclick='window.showRevealedSender(${JSON.stringify(q).replace(/'/g, "\\'")})' class="reveal-btn revealed">
                             <i class="fas fa-eye"></i> View Sender
                         </button>` : 
                         `<button class="reveal-btn disabled" disabled>
@@ -718,6 +721,7 @@ window.voteQuestion = async function(questionId, voteType) {
     }
 };
 
+// ========== SEND ANONYMOUS QUESTION - FIXED to store sender info ==========
 window.sendAnonymousQuestion = async function() {
     const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
@@ -753,6 +757,22 @@ window.sendAnonymousQuestion = async function() {
         
         const recipient = querySnapshot.docs[0];
         
+        let senderName = 'Anonymous Sender';
+        let senderEmail = 'anonymous@hidden.com';
+        
+        if (currentUser && currentUser.uid) {
+            const senderRef = doc(db, 'users', currentUser.uid);
+            const senderSnap = await getDoc(senderRef);
+            if (senderSnap.exists()) {
+                const senderData = senderSnap.data();
+                senderName = senderData.name || currentUser.email.split('@')[0];
+                senderEmail = currentUser.email;
+            } else {
+                senderName = currentUser.email.split('@')[0];
+                senderEmail = currentUser.email;
+            }
+        }
+        
         await addDoc(collection(db, 'questions'), {
             toUid: recipient.data().uid,
             toSlug: toSlug,
@@ -760,7 +780,10 @@ window.sendAnonymousQuestion = async function() {
             upvotes: 0,
             downvotes: 0,
             askedAt: new Date().toISOString(),
-            senderUid: currentUser?.uid || null
+            senderUid: currentUser?.uid || null,
+            senderName: senderName,
+            senderEmail: senderEmail,
+            revealed: false
         });
         
         document.getElementById('anonymousQuestion').value = '';
@@ -774,6 +797,7 @@ window.sendAnonymousQuestion = async function() {
             statusDiv.style.color = '';
         }, 3000);
     } catch (error) {
+        console.error('Error sending question:', error);
         statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to send';
     } finally {
         if (sendBtn) sendBtn.disabled = false;
