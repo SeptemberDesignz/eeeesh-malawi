@@ -719,107 +719,142 @@ window.voteQuestion = async function(questionId, voteType) {
     }
 };
 
-// ========== SEND ANONYMOUS QUESTION - FIXED ==========
+// ========== SEND ANONYMOUS QUESTION - COMPLETELY FIXED ==========
 window.sendAnonymousQuestion = async function() {
     const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
     const toSlug = urlParams.get('to');
     
+    console.log("Sending question to:", toSlug);
+    console.log("Question:", question);
+    
+    // Helper to show status
+    function showStatus(message, type) {
+        const statusDiv = document.getElementById('messageStatus');
+        if (!statusDiv) return;
+        statusDiv.innerHTML = message;
+        statusDiv.className = 'status-message';
+        if (type === 'success') {
+            statusDiv.classList.add('status-success');
+        } else if (type === 'error') {
+            statusDiv.classList.add('status-error');
+        } else if (type === 'loading') {
+            statusDiv.classList.add('status-loading');
+        }
+    }
+    
     // Validation
     if (!question) {
-        alert('Please write a question');
+        showStatus('<i class="fas fa-exclamation-circle"></i> Please write a question', 'error');
         return;
     }
     
     if (question.length < 5) {
-        alert('Question must be at least 5 characters');
+        showStatus('<i class="fas fa-exclamation-circle"></i> Question must be at least 5 characters', 'error');
         return;
     }
     
     if (question.length > 500) {
-        alert('Question must be less than 500 characters');
+        showStatus('<i class="fas fa-exclamation-circle"></i> Question must be less than 500 characters', 'error');
         return;
     }
     
     if (!toSlug) {
-        alert('Invalid link. Please use a valid anonymous link.');
+        showStatus('<i class="fas fa-exclamation-circle"></i> Invalid link. Please use a valid anonymous link.', 'error');
         return;
     }
     
-    const statusDiv = document.getElementById('messageStatus');
     const sendBtn = document.getElementById('sendQuestionBtn');
     
     // Show loading state
-    statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Sending anonymously...';
-    statusDiv.style.color = '#ff3b30';
+    showStatus('<i class="fas fa-spinner fa-pulse"></i> Sending anonymously...', 'loading');
     if (sendBtn) sendBtn.disabled = true;
     
     try {
+        // Make sure Firebase is initialized
+        if (!db) {
+            throw new Error('Firebase not initialized');
+        }
+        
         // Find recipient user by slug
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where('slug', '==', toSlug));
         const querySnapshot = await getDocs(q);
         
+        console.log("Recipient query result:", querySnapshot.size);
+        
         if (querySnapshot.empty) {
-            statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> User not found. The link may be invalid.';
-            statusDiv.style.color = '#ff3b30';
+            showStatus('<i class="fas fa-exclamation-circle"></i> User not found. The link may be invalid.', 'error');
             return;
         }
         
         const recipient = querySnapshot.docs[0];
+        const recipientData = recipient.data();
         
-        // Get sender info if logged in
+        console.log("Recipient found:", recipientData.email);
+        
+        // Get sender info
         let senderName = 'Anonymous User';
         let senderEmail = 'hidden@example.com';
+        let senderUid = null;
         
-        if (currentUser && currentUser.uid) {
+        // Check if user is logged in via auth
+        const currentAuthUser = auth.currentUser;
+        
+        if (currentAuthUser && currentAuthUser.uid) {
+            senderUid = currentAuthUser.uid;
             try {
-                const senderRef = doc(db, 'users', currentUser.uid);
+                const senderRef = doc(db, 'users', currentAuthUser.uid);
                 const senderSnap = await getDoc(senderRef);
                 if (senderSnap.exists()) {
                     const senderData = senderSnap.data();
-                    senderName = senderData.name || currentUser.email.split('@')[0];
-                    senderEmail = currentUser.email;
+                    senderName = senderData.name || currentAuthUser.email.split('@')[0];
+                    senderEmail = currentAuthUser.email;
                 } else {
-                    senderName = currentUser.email.split('@')[0];
-                    senderEmail = currentUser.email;
+                    senderName = currentAuthUser.email.split('@')[0];
+                    senderEmail = currentAuthUser.email;
                 }
             } catch (err) {
                 console.error("Error getting sender info:", err);
+                senderName = currentAuthUser.email.split('@')[0];
+                senderEmail = currentAuthUser.email;
             }
         }
         
+        console.log("Saving question with sender:", senderName, senderEmail);
+        
         // Save question to Firestore
-        await addDoc(collection(db, 'questions'), {
-            toUid: recipient.data().uid,
+        const questionData = {
+            toUid: recipientData.uid,
             toSlug: toSlug,
             question: question,
             upvotes: 0,
             downvotes: 0,
             askedAt: new Date().toISOString(),
-            senderUid: currentUser?.uid || null,
+            senderUid: senderUid,
             senderName: senderName,
             senderEmail: senderEmail,
             revealed: false
-        });
+        };
+        
+        await addDoc(collection(db, 'questions'), questionData);
+        
+        console.log("Question saved successfully!");
         
         // Success!
         document.getElementById('anonymousQuestion').value = '';
         document.getElementById('charCount').textContent = '0';
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously! Your question has been delivered.';
-        statusDiv.style.color = '#2c5f2d';
-        
-        showSuccessMessage('✅ Your anonymous question has been sent!');
+        showStatus('<i class="fas fa-check-circle"></i> Sent anonymously! Your question has been delivered.', 'success');
         
         // Clear success message after 5 seconds
         setTimeout(() => { 
-            statusDiv.innerHTML = ''; 
+            const statusDiv = document.getElementById('messageStatus');
+            if (statusDiv) statusDiv.innerHTML = '';
         }, 5000);
         
     } catch (error) {
         console.error('Error sending question:', error);
-        statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to send. Please try again.';
-        statusDiv.style.color = '#ff3b30';
+        showStatus('<i class="fas fa-exclamation-circle"></i> Failed to send. Error: ' + error.message, 'error');
     } finally {
         if (sendBtn) sendBtn.disabled = false;
     }

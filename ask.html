@@ -7,25 +7,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Fix for textarea sizing - Mobile & Desktop */
+        /* Premium Ask Page Styles */
         .ask-container {
             max-width: 600px;
             margin: 0 auto;
             width: 100%;
         }
+        
         .question-input-wrapper {
             position: relative;
             width: 100%;
             margin: 20px 0;
         }
+        
         .question-input-wrapper i {
             position: absolute;
             top: 18px;
             left: 16px;
-            color: #8e8e93;
+            color: #ff3b30;
             font-size: 18px;
             z-index: 1;
         }
+        
         .question-input-wrapper textarea {
             width: 100%;
             padding: 16px 18px 16px 48px;
@@ -39,11 +42,13 @@
             transition: all 0.2s ease;
             line-height: 1.5;
         }
+        
         .question-input-wrapper textarea:focus {
             outline: none;
             border-color: #ff3b30;
             box-shadow: 0 0 0 3px rgba(255,59,48,0.1);
         }
+        
         .char-counter {
             text-align: right;
             font-size: 12px;
@@ -51,8 +56,9 @@
             margin-top: 8px;
             margin-bottom: 16px;
         }
+        
         .sender-info-warning {
-            background: #fff3e0;
+            background: linear-gradient(135deg, #fff8e7 0%, #ffffff 100%);
             border-radius: 16px;
             padding: 14px 16px;
             margin-bottom: 20px;
@@ -61,30 +67,148 @@
             align-items: flex-start;
             gap: 12px;
         }
+        
         .sender-info-warning i {
             font-size: 20px;
             color: #ff9800;
             margin-top: 2px;
         }
+        
         .sender-info-warning div {
             flex: 1;
         }
+        
         .sender-info-warning strong {
             font-size: 14px;
             color: #1c1c1e;
         }
+        
         .sender-info-warning p {
             font-size: 12px;
             color: #666;
             margin-top: 4px;
         }
+        
+        /* Premium Send Button */
+        .premium-send-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #ff3b30, #ff6b62);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+        }
+        
+        .premium-send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 59, 48, 0.4);
+        }
+        
+        .premium-send-btn:active {
+            transform: translateY(0);
+        }
+        
+        .premium-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .premium-send-btn i {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        
+        .premium-send-btn:hover i {
+            transform: translateX(3px);
+        }
+        
+        /* Status Message */
         .status-message {
             text-align: center;
             margin-top: 16px;
-            font-weight: 500;
-            padding: 10px;
+            padding: 12px;
             border-radius: 12px;
+            font-weight: 500;
+            animation: fadeIn 0.3s ease;
         }
+        
+        .status-success {
+            background: #e8f5e9;
+            color: #2c5f2d;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .status-error {
+            background: #ffebee;
+            color: #ff3b30;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .status-loading {
+            background: #e3f2fd;
+            color: #2196f3;
+            border: 1px solid #bbdef5;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .privacy-box {
+            background: linear-gradient(135deg, #f9f9fb 0%, #ffffff 100%);
+            padding: 16px;
+            border-radius: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 13px;
+            color: #8e8e93;
+            border: 1px solid #e5e5ea;
+        }
+        
+        .privacy-box i {
+            font-size: 24px;
+            color: #25D366;
+        }
+        
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .back-link a {
+            color: #8e8e93;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+        
+        .back-link a:hover {
+            color: #ff3b30;
+        }
+        
+        hr {
+            margin: 24px 0;
+            border: none;
+            border-top: 1px solid #e5e5ea;
+        }
+        
         @media (max-width: 600px) {
             .question-input-wrapper textarea {
                 font-size: 14px;
@@ -94,11 +218,13 @@
             .sender-info-warning {
                 padding: 12px;
             }
-            .sender-info-warning i {
-                font-size: 18px;
+            .premium-send-btn {
+                padding: 14px 20px;
+                font-size: 16px;
             }
             .status-message {
                 font-size: 13px;
+                padding: 10px;
             }
         }
     </style>
@@ -132,13 +258,15 @@
                 <span id="charCount">0</span>/500 characters
             </div>
             
-            <!-- Send Button -->
-            <button onclick="sendAnonymousQuestion()" class="apple-btn red" id="sendQuestionBtn">
-                <i class="fas fa-paper-plane"></i> Send anonymously
+            <!-- Premium Send Button -->
+            <button onclick="sendAnonymousQuestion()" class="premium-send-btn" id="sendQuestionBtn">
+                <i class="fas fa-paper-plane"></i>
+                <span>Send anonymously</span>
+                <i class="fas fa-shield-alt"></i>
             </button>
             <div id="messageStatus" class="status-message"></div>
             
-            <hr style="margin: 24px 0;">
+            <hr>
             
             <!-- Privacy Box -->
             <div class="privacy-box">
