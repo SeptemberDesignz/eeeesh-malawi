@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Eeeesh — Anonymous Inbox</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>Eeeesh Malawi <span>inbox</span></h1>
+            <div class="logout-link">
+                <button onclick="logout()" class="text-btn">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="userInfo" class="user-badge"></div>
+            
+            <!-- Your Anonymous Link Card -->
+            <div class="link-card">
+                <strong>🔗 Your anonymous link (share anywhere):</strong><br>
+                <code id="anonymousLink" style="font-size:14px; word-break:break-all;"></code>
+                <button onclick="copyLink()" class="small-btn" style="margin-top:12px;">📋 Copy link</button>
+                <p class="hint">💬 Share on WhatsApp, Facebook, or SMS — nobody knows it's you! <br> 🇲🇼 "Uzifunsa mosadziwika"</p>
+            </div>
+
+            <hr>
+
+            <h3>📬 Anonymous questions for you:</h3>
+            <div id="questionsList">
+                <div class="empty-msg">Loading...</div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

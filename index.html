@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Eeeesh Malawi — Ask Anonymously</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+    <div class="app-container">
+        <div class="header">
+            <h1>Eeeesh Malawi 🇲🇼 <span>anonymously</span></h1>
+            <p class="tagline">"Funsa mosadziwika — spill the tea"</p>
+        </div>
+        
+        <div class="content">
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h2>Log in to receive anonymous questions</h2>
+                <div class="input-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="loginEmail" placeholder="banda@example.com">
+                </div>
+                <div class="input-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••">
+                </div>
+                <button onclick="handleLogin()">Log in →</button>
+                <p style="text-align:center; margin-top:1rem;">
+                    <a href="#" onclick="showSignup()">No account? Create one</a>
+                </p>
+            </div>
+
+            <!-- Signup Form (hidden initially) -->
+            <div id="signupForm" style="display:none;">
+                <h2>Create your Eeeesh account</h2>
+                <div class="input-group">
+                    <label>👤 Display name (optional)</label>
+                    <input type="text" id="signupName" placeholder="Banda from Lilongwe">
+                </div>
+                <div class="input-group">
+                    <label>📧 Email (will be used to login)</label>
+                    <input type="email" id="signupEmail" placeholder="banda@example.com">
+                </div>
+                <div class="input-group">
+                    <label>🔒 Password</label>
+                    <input type="password" id="signupPassword" placeholder="min 6 characters">
+                </div>
+                <button onclick="handleSignup()">Create account</button>
+                <p style="text-align:center; margin-top:1rem;">
+                    <a href="#" onclick="showLogin()">← Back to login</a>
+                </p>
+            </div>
+            
+            <!-- Demo credentials hint -->
+            <div style="background:#f0e6d2; padding:12px; border-radius:20px; margin-top:20px; text-align:center; font-size:13px;">
+                📱 <strong>Demo account:</strong> banda@example.com / 123456
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
