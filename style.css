@@ -66,89 +66,6 @@ body {
     margin-bottom: 32px;
 }
 
-.auth-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 28px;
-    background: #f2f2f7;
-    padding: 4px;
-    border-radius: 100px;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    font-weight: 500;
-    border-radius: 100px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #8e8e93;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.tab-btn i {
-    font-size: 14px;
-}
-
-.tab-btn.active {
-    background: white;
-    color: #ff3b30;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.auth-form {
-    display: none;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.auth-form.active {
-    display: flex;
-}
-
-.input-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-icon i {
-    position: absolute;
-    left: 16px;
-    color: #8e8e93;
-    font-size: 16px;
-    pointer-events: none;
-}
-
-.apple-input {
-    width: 100%;
-    padding: 16px 18px;
-    padding-left: 44px;
-    font-size: 17px;
-    border: 1px solid #e5e5ea;
-    border-radius: 14px;
-    background: #f9f9fb;
-    transition: all 0.2s ease;
-    font-family: inherit;
-}
-
-.apple-input:focus {
-    outline: none;
-    border-color: #ff3b30;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(255,59,48,0.1);
-}
-
-textarea.apple-input {
-    padding-left: 18px;
-}
-
 .apple-btn {
     width: 100%;
     padding: 16px;
@@ -169,17 +86,6 @@ textarea.apple-input {
     font-size: 18px;
 }
 
-.apple-btn.red {
-    background: #ff3b30;
-    color: white;
-    box-shadow: 0 2px 12px rgba(255,59,48,0.3);
-}
-
-.apple-btn.red:hover {
-    background: #ff2a1f;
-    transform: scale(0.98);
-}
-
 .apple-btn.google {
     background: white;
     color: #1c1c1e;
@@ -194,37 +100,36 @@ textarea.apple-input {
     color: #4285f4;
 }
 
+.apple-btn.apple {
+    background: black;
+    color: white;
+}
+
+.apple-btn.apple:hover {
+    background: #333;
+    transform: scale(0.98);
+}
+
+.apple-btn.red {
+    background: #ff3b30;
+    color: white;
+    box-shadow: 0 2px 12px rgba(255,59,48,0.3);
+}
+
+.apple-btn.red:hover {
+    background: #ff2a1f;
+    transform: scale(0.98);
+}
+
 .apple-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-.divider {
-    text-align: center;
-    color: #8e8e93;
-    font-size: 13px;
-    margin: 8px 0;
-    position: relative;
-}
-
-.divider::before,
-.divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 1px;
-    background: #e5e5ea;
-}
-
-.divider::before { left: 0; }
-.divider::after { right: 0; }
-
 .terms-text {
     text-align: center;
     font-size: 13px;
     color: #8e8e93;
-    margin-top: 24px;
 }
 
 .terms-text a {
@@ -668,11 +573,7 @@ hr {
         flex-direction: column;
     }
     
-    .apple-btn.small {
-        width: 100%;
-    }
-    
-    .whatsapp-btn, .share-image-btn {
+    .apple-btn.small, .whatsapp-btn, .share-image-btn {
         width: 100%;
     }
     

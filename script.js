@@ -1,11 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 
 const app = initializeApp(window.firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider('apple.com');
 
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
@@ -18,13 +19,24 @@ function requestNotificationPermission() {
     if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
             notificationPermission = permission === 'granted';
+            if (notificationPermission) {
+                showSuccessMessage('Notifications enabled! You will be alerted when you get new questions.');
+                const banner = document.getElementById('notificationBanner');
+                if (banner) banner.style.display = 'none';
+            } else {
+                showSuccessMessage('You can enable notifications in browser settings to get alerts.');
+            }
         });
     }
 }
 
 function sendNotification(title, body) {
     if (notificationPermission && 'Notification' in window) {
-        new Notification(title, { body: body });
+        const notification = new Notification(title, { 
+            body: body, 
+            icon: 'https://septemberdesignz.github.io/eeeesh-malawi/favicon.ico'
+        });
+        setTimeout(() => notification.close(), 5000);
     }
 }
 
@@ -47,20 +59,14 @@ function showSuccessMessage(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ========== GOOGLE SIGN-IN ==========
 window.handleGoogleSignIn = async function() {
     const googleBtn = document.querySelector('.apple-btn.google');
     if (googleBtn) {
         googleBtn.disabled = true;
-        googleBtn.style.opacity = '0.6';
         googleBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Signing in...';
     }
     
     try {
-        googleProvider.setCustomParameters({
-            'prompt': 'select_account'
-        });
-        
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         
@@ -76,6 +82,7 @@ window.handleGoogleSignIn = async function() {
                 name: user.displayName || user.email.split('@')[0],
                 email: user.email,
                 slug: slug,
+                provider: 'google',
                 createdAt: new Date().toISOString()
             });
         }
@@ -86,10 +93,8 @@ window.handleGoogleSignIn = async function() {
         }, 500);
         
     } catch (error) {
-        console.error("Google sign-in error:", error.code);
-        
         if (error.code === 'auth/popup-closed-by-user') {
-            alert('Sign-in cancelled. Please try again and don\'t close the popup.');
+            alert('Sign-in cancelled. Please try again.');
         } else if (error.code === 'auth/popup-blocked') {
             alert('Popup blocked. Please allow popups for this site.');
         } else {
@@ -98,13 +103,60 @@ window.handleGoogleSignIn = async function() {
     } finally {
         if (googleBtn) {
             googleBtn.disabled = false;
-            googleBtn.style.opacity = '1';
             googleBtn.innerHTML = '<i class="fab fa-google"></i> Continue with Google';
         }
     }
 };
 
-// ========== LOGOUT ==========
+window.handleAppleSignIn = async function() {
+    const appleBtn = document.querySelector('.apple-btn.apple');
+    if (appleBtn) {
+        appleBtn.disabled = true;
+        appleBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Signing in...';
+    }
+    
+    try {
+        const result = await signInWithPopup(auth, appleProvider);
+        const user = result.user;
+        
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (!userSnap.exists()) {
+            const baseSlug = (user.displayName || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const slug = baseSlug + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+            
+            await setDoc(doc(db, 'users', user.uid), {
+                uid: user.uid,
+                name: user.displayName || user.email.split('@')[0],
+                email: user.email,
+                slug: slug,
+                provider: 'apple',
+                createdAt: new Date().toISOString()
+            });
+        }
+        
+        showSuccessMessage('Welcome! Redirecting...');
+        setTimeout(() => {
+            window.location.href = getBaseUrl() + 'dashboard.html';
+        }, 500);
+        
+    } catch (error) {
+        if (error.code === 'auth/popup-closed-by-user') {
+            alert('Sign-in cancelled. Please try again.');
+        } else if (error.code === 'auth/popup-blocked') {
+            alert('Popup blocked. Please allow popups for this site.');
+        } else {
+            alert('Apple sign-in failed: ' + error.message);
+        }
+    } finally {
+        if (appleBtn) {
+            appleBtn.disabled = false;
+            appleBtn.innerHTML = '<i class="fab fa-apple"></i> Sign in with Apple';
+        }
+    }
+};
+
 window.logout = async function() {
     await signOut(auth);
     showSuccessMessage('Logged out');
@@ -113,7 +165,6 @@ window.logout = async function() {
     }, 500);
 };
 
-// ========== COPY LINK ==========
 window.copyLink = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -123,7 +174,6 @@ window.copyLink = function() {
     }
 };
 
-// ========== SHARE TO WHATSAPP ==========
 window.shareToWhatsApp = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -133,7 +183,6 @@ window.shareToWhatsApp = function() {
     }
 };
 
-// ========== SHARE AS IMAGE ==========
 window.shareAsImage = async function() {
     const linkCode = document.getElementById('anonymousLink');
     if (!linkCode) return;
@@ -186,7 +235,6 @@ window.shareAsImage = async function() {
     showSuccessMessage('Image saved! Share it on WhatsApp or Instagram');
 };
 
-// ========== DELETE QUESTION ==========
 window.deleteQuestion = async function(questionId) {
     if (!confirm('Delete this question?')) return;
     try {
@@ -197,7 +245,6 @@ window.deleteQuestion = async function(questionId) {
     }
 };
 
-// ========== DELETE EXPIRED QUESTIONS (7 DAYS) ==========
 async function deleteExpiredQuestions(userId) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -213,7 +260,6 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
-// ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -222,7 +268,13 @@ async function loadDashboard() {
         }
         
         currentUser = user;
-        requestNotificationPermission();
+        
+        if (notificationPermission === false && 'Notification' in window && Notification.permission === 'default') {
+            const banner = document.getElementById('notificationBanner');
+            if (banner) banner.style.display = 'block';
+        } else if (Notification.permission === 'granted') {
+            notificationPermission = true;
+        }
         
         try {
             const userRef = doc(db, 'users', user.uid);
@@ -235,6 +287,7 @@ async function loadDashboard() {
                     name: user.email.split('@')[0],
                     email: user.email,
                     slug: slug,
+                    provider: 'unknown',
                     createdAt: new Date().toISOString()
                 });
                 currentUserData = { name: user.email.split('@')[0], email: user.email, slug: slug };
@@ -261,7 +314,7 @@ async function loadDashboard() {
                 });
                 
                 if (questions.length > previousCount && previousCount > 0) {
-                    sendNotification('New anonymous question!', 'Someone asked you a question on Eeeesh Malawi');
+                    sendNotification('🔔 New Anonymous Question!', `Someone asked you a question on Eeeesh Malawi! Check your inbox.`);
                 }
                 previousCount = questions.length;
                 
@@ -273,7 +326,6 @@ async function loadDashboard() {
     });
 }
 
-// ========== RENDER QUESTIONS ==========
 function renderQuestions(questions) {
     const container = document.getElementById('questionsList');
     if (!container) return;
@@ -329,7 +381,6 @@ function renderQuestions(questions) {
     }).join('');
 }
 
-// ========== VOTE QUESTION ==========
 window.voteQuestion = async function(questionId, voteType) {
     if (!currentUser) {
         alert('Please login to vote');
@@ -350,7 +401,6 @@ window.voteQuestion = async function(questionId, voteType) {
     }
 };
 
-// ========== SEND ANONYMOUS QUESTION ==========
 window.sendAnonymousQuestion = async function() {
     const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
@@ -399,7 +449,7 @@ window.sendAnonymousQuestion = async function() {
         statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously!';
         statusDiv.style.color = '#2c5f2d';
         
-        showSuccessMessage('Question sent anonymously!');
+        showSuccessMessage('✅ Your anonymous question has been sent!');
         
         setTimeout(() => { 
             statusDiv.innerHTML = ''; 
@@ -412,7 +462,6 @@ window.sendAnonymousQuestion = async function() {
     }
 };
 
-// ========== ESCAPE HTML ==========
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -423,7 +472,6 @@ function escapeHtml(str) {
     });
 }
 
-// ========== LOAD ASK PAGE ==========
 async function loadAskPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const toSlug = urlParams.get('to');
@@ -454,16 +502,15 @@ async function loadAskPage() {
     }
 }
 
-// ========== AUTO-LOGIN & PAGE ROUTING ==========
+window.requestNotificationPermission = requestNotificationPermission;
+
 document.addEventListener('DOMContentLoaded', function() {
     const path = window.location.pathname;
     const isLoginPage = path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/');
     
     if (isLoginPage) {
-        // Check if user is already logged in - AUTO REDIRECT
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Auto-login: User already logged in, redirecting to dashboard");
                 window.location.href = getBaseUrl() + 'dashboard.html';
             }
         });

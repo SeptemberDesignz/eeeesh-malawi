@@ -14,11 +14,19 @@
                 <div>
                     <h2>Welcome, <span id="userName">...</span></h2>
                     <div class="user-email">
-                        <span id="userEmail"></span>
+                        <i class="fas fa-envelope"></i> <span id="userEmail"></span>
                     </div>
                 </div>
                 <button onclick="logout()" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <!-- Notification Banner -->
+            <div id="notificationBanner" style="background: #f0f0f0; border-radius: 16px; padding: 12px; margin-bottom: 16px; text-align: center; display: none;">
+                <i class="fas fa-bell"></i> <strong>Enable notifications</strong> to know when you get new anonymous questions!
+                <button onclick="requestNotificationPermission()" style="background: #ff3b30; color: white; border: none; padding: 6px 16px; border-radius: 100px; margin-left: 12px; cursor: pointer;">
+                    <i class="fas fa-bell"></i> Enable
                 </button>
             </div>
             
@@ -28,7 +36,7 @@
                     <strong>Your anonymous link</strong>
                 </div>
                 <div class="link-code" id="anonymousLink">
-                    <i class="fas fa-link"></i> Loading...
+                    <i class="fas fa-spinner fa-pulse"></i> Loading...
                 </div>
                 <div class="button-group">
                     <button onclick="copyLink()" class="apple-btn red small">
