@@ -16,63 +16,12 @@
             </div>
             <p class="subtitle">Ask anything. Stay anonymous. No judgment.</p>
             
-            <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">
-                    <i class="fas fa-sign-in-alt"></i> Log in
-                </button>
-                <button class="tab-btn" onclick="switchTab('signup')">
-                    <i class="fas fa-user-plus"></i> Sign up
-                </button>
-            </div>
+            <!-- Only Google Sign-In Button -->
+            <button onclick="handleGoogleSignIn()" class="apple-btn google" style="margin-top: 20px;">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
             
-            <!-- Login Form -->
-            <div id="loginTab" class="auth-form active">
-                <div class="input-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email" class="apple-input">
-                </div>
-                <div class="input-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" class="apple-input">
-                </div>
-                <button onclick="handleLogin()" class="apple-btn red">
-                    <i class="fas fa-arrow-right"></i> Log in
-                </button>
-                <div style="text-align: right; margin-top: -8px;">
-                    <a href="#" onclick="forgotPassword()" style="font-size: 13px; color: #ff3b30; text-decoration: none;">
-                        <i class="fas fa-key"></i> Forgot Password?
-                    </a>
-                </div>
-                <div class="divider">or</div>
-                <button onclick="handleGoogleSignIn()" class="apple-btn google">
-                    <i class="fab fa-google"></i> Continue with Google
-                </button>
-            </div>
-            
-            <!-- Signup Form -->
-            <div id="signupTab" class="auth-form">
-                <div class="input-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="signupName" placeholder="Display name" class="apple-input">
-                </div>
-                <div class="input-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="signupEmail" placeholder="Email" class="apple-input">
-                </div>
-                <div class="input-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="apple-input">
-                </div>
-                <button onclick="handleSignup()" class="apple-btn red">
-                    <i class="fas fa-user-check"></i> Create account
-                </button>
-                <div class="divider">or</div>
-                <button onclick="handleGoogleSignIn()" class="apple-btn google">
-                    <i class="fab fa-google"></i> Sign up with Google
-                </button>
-            </div>
-            
-            <p class="terms-text">
+            <p class="terms-text" style="margin-top: 32px;">
                 By continuing, you agree to our <a href="terms.html"><i class="fas fa-file-contract"></i> Terms & Conditions</a>
             </p>
         </div>
