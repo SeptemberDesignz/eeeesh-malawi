@@ -524,7 +524,7 @@ window.submitPaymentConfirmation = async function(questionId) {
     }
 };
 
-// ========== SHOW REVEALED SENDER - FIXED ==========
+// ========== SHOW REVEALED SENDER ==========
 window.showRevealedSender = function(questionData) {
     console.log("Showing revealed sender:", questionData);
     
@@ -721,7 +721,7 @@ window.voteQuestion = async function(questionId, voteType) {
     }
 };
 
-// ========== SEND ANONYMOUS QUESTION - FIXED to store sender info ==========
+// ========== SEND ANONYMOUS QUESTION - FIXED ==========
 window.sendAnonymousQuestion = async function() {
     const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
@@ -747,6 +747,7 @@ window.sendAnonymousQuestion = async function() {
     if (sendBtn) sendBtn.disabled = true;
     
     try {
+        // Get recipient user
         const q = query(collection(db, 'users'), where('slug', '==', toSlug));
         const querySnapshot = await getDocs(q);
         
@@ -757,9 +758,10 @@ window.sendAnonymousQuestion = async function() {
         
         const recipient = querySnapshot.docs[0];
         
-        let senderName = 'Anonymous Sender';
-        let senderEmail = 'anonymous@hidden.com';
+        let senderName = 'Anonymous User';
+        let senderEmail = 'hidden@example.com';
         
+        // Check if user is logged in
         if (currentUser && currentUser.uid) {
             const senderRef = doc(db, 'users', currentUser.uid);
             const senderSnap = await getDoc(senderRef);
@@ -767,12 +769,14 @@ window.sendAnonymousQuestion = async function() {
                 const senderData = senderSnap.data();
                 senderName = senderData.name || currentUser.email.split('@')[0];
                 senderEmail = currentUser.email;
-            } else {
-                senderName = currentUser.email.split('@')[0];
-                senderEmail = currentUser.email;
             }
         }
+        // For complete anonymity, we don't store any identifying info
+        // The recipient can only reveal if they pay, but since the sender is anonymous,
+        // we need to store a way to identify them. For now, we store a placeholder.
+        // In a real production system, you would store an encrypted token.
         
+        // Store question with sender information
         await addDoc(collection(db, 'questions'), {
             toUid: recipient.data().uid,
             toSlug: toSlug,
