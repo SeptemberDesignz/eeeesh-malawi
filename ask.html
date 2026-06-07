@@ -5,33 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ask anonymously • Eeeesh Malawi</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="hero">
         <div class="glass-card">
             <div class="logo">
-                <span class="logo-icon">🤫</span>
+                <i class="fas fa-user-secret" style="font-size: 48px; color: #ff3b30;"></i>
                 <h1>Ask <span>anonymously</span></h1>
             </div>
-            <p style="text-align: center; margin-bottom: 20px;">
-                Ask <strong id="recipientName" style="color: #ff3b30;">...</strong> anything — they'll never know it's you.
+            <p class="subtitle">
+                <i class="fas fa-question-circle"></i> Ask <strong id="recipientName" style="color: #ff3b30;">...</strong> anything — they'll never know it's you.
             </p>
             
-            <textarea id="anonymousQuestion" rows="5" placeholder="Type your anonymous question here... (e.g., 'Why did you really leave that job?' or 'What's the tea?')" class="apple-input" style="margin: 10px 0;"></textarea>
-            <button onclick="sendAnonymousQuestion()" class="apple-btn red">Send anonymously →</button>
-            <div id="messageStatus" style="text-align: center; margin-top: 16px;"></div>
+            <div class="question-input-wrapper">
+                <i class="fas fa-pen-fancy"></i>
+                <textarea id="anonymousQuestion" rows="5" placeholder="Type your anonymous question here... (e.g., 'Why did you really leave that job?' or 'What's the tea?')" class="apple-input"></textarea>
+            </div>
+            
+            <button onclick="sendAnonymousQuestion()" class="apple-btn red">
+                <i class="fas fa-paper-plane"></i> Send anonymously
+            </button>
+            <div id="messageStatus" class="status-message"></div>
             
             <hr style="margin: 24px 0; border-color: #e5e5ea;">
             
-            <div style="background: #f9f9fb; padding: 16px; border-radius: 20px;">
-                <p style="font-size: 13px; color: #8e8e93; text-align: center; margin: 0;">
-                    🔒 <strong>100% anonymous</strong><br>
+            <div class="privacy-box">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <strong>100% anonymous</strong><br>
                     No names, no emails, no tracking. Your identity is completely safe.
-                </p>
+                </div>
             </div>
             
-            <p style="text-align: center; margin-top: 20px;">
-                <a href="index.html" style="color: #ff3b30; text-decoration: none;">← Back to Eeeesh Malawi</a>
+            <p class="back-link">
+                <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Eeeesh Malawi</a>
             </p>
         </div>
     </div>

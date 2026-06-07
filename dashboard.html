@@ -5,34 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Eeeesh — Anonymous Inbox</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="dashboard-container">
         <div class="dashboard-header">
             <div class="user-welcome">
                 <div>
-                    <h2>Welcome, <span id="userName">...</span> 🇲🇼</h2>
-                    <div class="user-email" id="userEmail"></div>
+                    <h2><i class="fas fa-hand-peace"></i> Welcome, <span id="userName">...</span> <i class="fas fa-flag-checkered" style="color: #ff3b30;"></i></h2>
+                    <div class="user-email">
+                        <i class="fas fa-envelope"></i> <span id="userEmail"></span>
+                    </div>
                 </div>
-                <button onclick="logout()" style="background: none; color: #ff3b30; border: none; font-size: 15px; cursor: pointer;">🚪 Logout</button>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
             </div>
             
             <div class="link-card">
-                <strong>🔗 Your anonymous link</strong>
-                <div class="link-code" id="anonymousLink">Loading...</div>
-                <button onclick="copyLink(document.getElementById('anonymousLink').innerText)" class="apple-btn red" style="margin-bottom: 12px;">📋 Copy link</button>
-                <button onclick="shareToWhatsApp(document.getElementById('anonymousLink').innerText, document.getElementById('userName').innerText)" class="whatsapp-btn">
-                    💚 Share to WhatsApp Status
-                </button>
-                <p style="font-size: 12px; color: #8e8e93; margin-top: 12px;">
-                    Share this link on WhatsApp, Facebook, or SMS — nobody will know it's you!
+                <div class="card-header">
+                    <i class="fas fa-link" style="color: #ff3b30;"></i>
+                    <strong>Your anonymous link</strong>
+                </div>
+                <div class="link-code" id="anonymousLink">
+                    <i class="fas fa-copy"></i> Loading...
+                </div>
+                <div class="button-group">
+                    <button onclick="copyLink(document.getElementById('anonymousLink').innerText)" class="apple-btn red small">
+                        <i class="fas fa-copy"></i> Copy link
+                    </button>
+                    <button onclick="shareToWhatsApp(document.getElementById('anonymousLink').innerText, document.getElementById('userName').innerText)" class="whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i> Share to WhatsApp Status
+                    </button>
+                </div>
+                <p class="hint-text">
+                    <i class="fas fa-shield-alt"></i> Share this link on WhatsApp, Facebook, or SMS — nobody will know it's you!
                 </p>
             </div>
         </div>
         
-        <h3 style="margin-bottom: 16px; font-weight: 600;">📬 Anonymous questions for you</h3>
+        <div class="inbox-header">
+            <h3><i class="fas fa-inbox"></i> Anonymous questions for you</h3>
+            <span class="badge" id="questionCount">0</span>
+        </div>
         <div id="questionsList">
-            <div class="loading">Loading your inbox...</div>
+            <div class="loading">
+                <i class="fas fa-spinner fa-pulse"></i> Loading your inbox...
+            </div>
         </div>
     </div>
     

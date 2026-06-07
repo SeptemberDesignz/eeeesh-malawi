@@ -5,46 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Eeeesh Malawi — Ask Anonymously</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome 6 (Premium Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="hero">
         <div class="glass-card">
             <div class="logo">
-                <span class="logo-icon">🇲🇼</span>
+                <i class="fas fa-comment-dots" style="font-size: 48px; color: #ff3b30;"></i>
                 <h1>Eeeesh<span>Malawi</span></h1>
             </div>
             <p class="subtitle">Ask anything. Stay anonymous. No judgment.</p>
             
             <div class="auth-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">Log in</button>
-                <button class="tab-btn" onclick="switchTab('signup')">Sign up</button>
+                <button class="tab-btn active" onclick="switchTab('login')">
+                    <i class="fas fa-sign-in-alt"></i> Log in
+                </button>
+                <button class="tab-btn" onclick="switchTab('signup')">
+                    <i class="fas fa-user-plus"></i> Sign up
+                </button>
             </div>
             
             <!-- Login Form -->
             <div id="loginTab" class="auth-form active">
-                <input type="email" id="loginEmail" placeholder="Email" class="apple-input">
-                <input type="password" id="loginPassword" placeholder="Password" class="apple-input">
-                <button onclick="handleLogin()" class="apple-btn red">Log in →</button>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Email" class="apple-input">
+                </div>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Password" class="apple-input">
+                </div>
+                <button onclick="handleLogin()" class="apple-btn red">
+                    <i class="fas fa-arrow-right"></i> Log in
+                </button>
                 <div class="divider">or</div>
                 <button onclick="handleGoogleSignIn()" class="apple-btn google">
-                    <span>🍎</span> Continue with Google
+                    <i class="fab fa-google"></i> Continue with Google
                 </button>
             </div>
             
-            <!-- Signup Form - NO reCAPTCHA -->
+            <!-- Signup Form -->
             <div id="signupTab" class="auth-form">
-                <input type="text" id="signupName" placeholder="Display name" class="apple-input">
-                <input type="email" id="signupEmail" placeholder="Email" class="apple-input">
-                <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="apple-input">
-                <button onclick="handleSignup()" class="apple-btn red">Create account →</button>
+                <div class="input-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="signupName" placeholder="Display name" class="apple-input">
+                </div>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="signupEmail" placeholder="Email" class="apple-input">
+                </div>
+                <div class="input-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="apple-input">
+                </div>
+                <button onclick="handleSignup()" class="apple-btn red">
+                    <i class="fas fa-user-check"></i> Create account
+                </button>
                 <div class="divider">or</div>
                 <button onclick="handleGoogleSignIn()" class="apple-btn google">
-                    <span>🍎</span> Sign up with Google
+                    <i class="fab fa-google"></i> Sign up with Google
                 </button>
             </div>
             
             <p class="terms-text">
-                By continuing, you agree to our <a href="terms.html">Terms & Conditions</a>
+                By continuing, you agree to our <a href="terms.html"><i class="fas fa-file-contract"></i> Terms & Conditions</a>
             </p>
         </div>
     </div>
