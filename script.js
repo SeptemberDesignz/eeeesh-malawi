@@ -7,6 +7,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Add additional scopes if needed
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Set persistence
 setPersistence(auth, browserLocalPersistence).catch(console.error);
 
 let currentUser = null;
@@ -166,7 +171,7 @@ window.forgotPassword = async function() {
     
     try {
         await sendPasswordResetEmail(auth, email);
-        alert('Password reset email sent!\n\nCheck your inbox and follow the instructions.');
+        alert('✅ Password reset email sent!\n\nCheck your inbox and follow the instructions.');
     } catch (error) {
         if (error.code === 'auth/user-not-found') {
             alert('No account found with this email.\n\nPlease sign up first.');
@@ -176,10 +181,27 @@ window.forgotPassword = async function() {
     }
 };
 
+// ========== FIXED GOOGLE SIGN-IN ==========
 window.handleGoogleSignIn = async function() {
+    // Disable the button to prevent multiple clicks
+    const googleBtn = document.querySelector('.apple-btn.google');
+    if (googleBtn) {
+        googleBtn.disabled = true;
+        googleBtn.style.opacity = '0.6';
+    }
+    
     try {
+        // Set custom parameters for better popup handling
+        googleProvider.setCustomParameters({
+            'prompt': 'select_account'
+        });
+        
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
+        
+        console.log("Google user:", user.email);
+        
+        // Check if user profile exists in Firestore
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
         
@@ -194,6 +216,7 @@ window.handleGoogleSignIn = async function() {
                 slug: slug,
                 createdAt: new Date().toISOString()
             });
+            console.log("New Google user profile created");
         }
         
         showSuccessMessage('Google sign-in successful!');
@@ -202,7 +225,23 @@ window.handleGoogleSignIn = async function() {
         }, 500);
         
     } catch (error) {
-        alert('Google sign-in failed: ' + error.message);
+        console.error("Google sign-in error:", error.code);
+        
+        if (error.code === 'auth/popup-closed-by-user') {
+            alert('Google sign-in was cancelled.\n\nPlease try again and don\'t close the popup window.');
+        } else if (error.code === 'auth/popup-blocked') {
+            alert('Popup was blocked by your browser.\n\nPlease allow popups for this site and try again.');
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            alert('Sign-in cancelled. Please try again.');
+        } else {
+            alert('Google sign-in failed: ' + error.message);
+        }
+    } finally {
+        // Re-enable the button
+        if (googleBtn) {
+            googleBtn.disabled = false;
+            googleBtn.style.opacity = '1';
+        }
     }
 };
 
