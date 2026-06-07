@@ -1,48 +1,58 @@
 // Import Firebase modules
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 
-// Initialize Firebase with your config
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(window.firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Save login state - user stays logged in
+// Set persistence - keeps user logged in
 setPersistence(auth, browserLocalPersistence)
-    .catch((error) => {
-        console.error("Persistence error:", error);
-    });
+    .then(() => console.log("Persistence set"))
+    .catch(console.error);
 
 let currentUser = null;
+let currentUserData = null;
 
-// Get base URL for GitHub Pages
+// Get base URL
 function getBaseUrl() {
-    const path = window.location.pathname;
-    if (path.includes('/eeeesh-malawi/')) {
-        return '/eeeesh-malawi/';
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return '/';
     }
-    return '/';
+    return '/eeeesh-malawi/';
+}
+
+// Get live URL
+function getLiveUrl() {
+    return `https://septemberdesignz.github.io${getBaseUrl()}`;
 }
 
 // Tab switching
 window.switchTab = function(tab) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const loginBtn = document.querySelector('.tab-btn:first-child');
+    const signupBtn = document.querySelector('.tab-btn:last-child');
     
     if (tab === 'login') {
-        document.querySelector('.tab-btn:first-child').classList.add('active');
-        document.getElementById('loginTab').classList.add('active');
+        loginBtn.classList.add('active');
+        signupBtn.classList.remove('active');
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
     } else {
-        document.querySelector('.tab-btn:last-child').classList.add('active');
-        document.getElementById('signupTab').classList.add('active');
+        loginBtn.classList.remove('active');
+        signupBtn.classList.add('active');
+        loginTab.classList.remove('active');
+        signupTab.classList.add('active');
     }
 };
 
 // Email Login
 window.handleLogin = async function() {
-    const email = document.getElementById('loginEmail').value;
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     
     if (!email || !password) {
@@ -58,10 +68,10 @@ window.handleLogin = async function() {
     }
 };
 
-// Signup with Email
+// Signup
 window.handleSignup = async function() {
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
     
     if (!email || !password || password.length < 6) {
@@ -72,16 +82,18 @@ window.handleSignup = async function() {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
-        // Save user profile to Firestore
+        const baseSlug = (name || email.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+        const slug = baseSlug + '_' + Date.now();
+        
         await setDoc(doc(db, 'users', userCredential.user.uid), {
             uid: userCredential.user.uid,
             name: name || email.split('@')[0],
             email: email,
-            slug: (name || email.split('@')[0]).toLowerCase().replace(/\s/g, '') + '_' + Date.now(),
+            slug: slug,
             createdAt: new Date().toISOString()
         });
         
-        alert('Account created successfully! You are now logged in.');
+        alert('Account created successfully!');
         window.location.href = getBaseUrl() + 'dashboard.html';
     } catch (error) {
         alert('Signup failed: ' + error.message);
@@ -92,16 +104,20 @@ window.handleSignup = async function() {
 window.handleGoogleSignIn = async function() {
     try {
         const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
         
-        // Check if user exists in Firestore
-        const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', result.user.uid)));
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
         
-        if (userDoc.empty) {
-            await setDoc(doc(db, 'users', result.user.uid), {
-                uid: result.user.uid,
-                name: result.user.displayName || result.user.email.split('@')[0],
-                email: result.user.email,
-                slug: (result.user.displayName || result.user.email.split('@')[0]).toLowerCase().replace(/\s/g, '') + '_' + Date.now(),
+        if (!userSnap.exists()) {
+            const baseSlug = (user.displayName || user.email.split('@')[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+            const slug = baseSlug + '_' + Date.now();
+            
+            await setDoc(doc(db, 'users', user.uid), {
+                uid: user.uid,
+                name: user.displayName || user.email.split('@')[0],
+                email: user.email,
+                slug: slug,
                 createdAt: new Date().toISOString()
             });
         }
@@ -113,23 +129,40 @@ window.handleGoogleSignIn = async function() {
 };
 
 // Logout
-window.logout = function() {
-    signOut(auth);
+window.logout = async function() {
+    await signOut(auth);
     window.location.href = getBaseUrl() + 'index.html';
 };
 
 // Copy link
-window.copyLink = function(link) {
-    const cleanLink = link.replace('🔗', '').replace('Loading...', '').trim();
-    navigator.clipboard.writeText(cleanLink);
-    alert('✅ Link copied! Share it on WhatsApp or Facebook.');
+window.copyLink = function() {
+    const linkCode = document.getElementById('anonymousLink');
+    if (linkCode) {
+        const liveLink = linkCode.getAttribute('data-live-link') || linkCode.innerText;
+        navigator.clipboard.writeText(liveLink);
+        alert('✅ Link copied!');
+    }
 };
 
 // Share to WhatsApp
-window.shareToWhatsApp = function(link, name) {
-    const cleanLink = link.replace('🔗', '').replace('Loading...', '').trim();
-    const message = `🇲🇼 Eeeesh Malawi: Ask me anything anonymously! ${cleanLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+window.shareToWhatsApp = function() {
+    const linkCode = document.getElementById('anonymousLink');
+    if (linkCode) {
+        const liveLink = linkCode.getAttribute('data-live-link') || linkCode.innerText;
+        const message = `🇲🇼 Eeeesh Malawi: Ask me anything anonymously! ${liveLink}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    }
+};
+
+// Delete question
+window.deleteQuestion = async function(questionId) {
+    if (!confirm('Delete this question?')) return;
+    try {
+        await deleteDoc(doc(db, 'questions', questionId));
+        alert('✅ Deleted');
+    } catch (error) {
+        alert('Delete failed: ' + error.message);
+    }
 };
 
 // Load dashboard
@@ -142,29 +175,44 @@ async function loadDashboard() {
         
         currentUser = user;
         
-        // Get user profile
-        const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', user.uid)));
-        if (userDoc.empty) {
-            console.error('User profile not found');
-            return;
-        }
-        
-        const userData = userDoc.docs[0].data();
-        const anonymousLink = `${window.location.origin}${getBaseUrl()}ask.html?to=${userData.slug}`;
-        
-        document.getElementById('userName').innerHTML = userData.name || user.email.split('@')[0];
-        document.getElementById('userEmail').innerHTML = user.email;
-        document.getElementById('anonymousLink').innerHTML = anonymousLink;
-        
-        // Listen to questions in real-time
-        const q = query(collection(db, 'questions'), where('toUid', '==', user.uid));
-        onSnapshot(q, (snapshot) => {
-            const questions = [];
-            snapshot.forEach(doc => {
-                questions.push({ id: doc.id, ...doc.data() });
+        try {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (!userSnap.exists()) {
+                const slug = user.email.split('@')[0] + '_' + Date.now();
+                await setDoc(doc(db, 'users', user.uid), {
+                    uid: user.uid,
+                    name: user.email.split('@')[0],
+                    email: user.email,
+                    slug: slug,
+                    createdAt: new Date().toISOString()
+                });
+                currentUserData = { name: user.email.split('@')[0], email: user.email, slug: slug };
+            } else {
+                currentUserData = userSnap.data();
+            }
+            
+            document.getElementById('userName').innerHTML = currentUserData.name;
+            document.getElementById('userEmail').innerHTML = currentUserData.email;
+            
+            const anonymousLink = `${getLiveUrl()}ask.html?to=${currentUserData.slug}`;
+            const linkElement = document.getElementById('anonymousLink');
+            linkElement.innerHTML = anonymousLink;
+            linkElement.setAttribute('data-live-link', anonymousLink);
+            
+            const q = query(collection(db, 'questions'), where('toUid', '==', user.uid));
+            onSnapshot(q, (snapshot) => {
+                const questions = [];
+                snapshot.forEach(doc => {
+                    questions.push({ id: doc.id, ...doc.data() });
+                });
+                renderQuestions(questions);
             });
-            renderQuestions(questions);
-        });
+            
+        } catch (error) {
+            console.error(error);
+        }
     });
 }
 
@@ -172,32 +220,32 @@ function renderQuestions(questions) {
     const container = document.getElementById('questionsList');
     if (!container) return;
     
-    // Update badge count
     const badge = document.getElementById('questionCount');
-    if (badge) {
-        badge.textContent = questions.length;
-    }
+    if (badge) badge.textContent = questions.length;
     
     if (questions.length === 0) {
-        container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><br>🤫 No anonymous questions yet. Share your link above!</div>';
+        container.innerHTML = '<div class="empty-state"><i class="fas fa-comments"></i><br>🤫 No anonymous questions yet.</div>';
         return;
     }
     
-    // Sort by newest first
     questions.sort((a, b) => new Date(b.askedAt) - new Date(a.askedAt));
     
-    // NO REPLY BUTTON - only show question and vote buttons
     container.innerHTML = questions.map(q => `
-        <div class="question-card" data-id="${q.id}">
-            <div class="question-text">
-                <i class="fas fa-question-circle" style="color: #ff3b30;"></i>
-                ${escapeHtml(q.question)}
+        <div class="question-card">
+            <div class="question-header">
+                <div class="question-text">
+                    <i class="fas fa-question-circle" style="color: #ff3b30;"></i>
+                    ${escapeHtml(q.question)}
+                </div>
+                <button onclick="deleteQuestion('${q.id}')" class="delete-btn" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
             <div class="vote-buttons">
-                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote')">
+                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote', this)">
                     <i class="fas fa-thumbs-up"></i> ${q.upvotes || 0}
                 </button>
-                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'downvote')">
+                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'downvote', this)">
                     <i class="fas fa-thumbs-down"></i> ${q.downvotes || 0}
                 </button>
             </div>
@@ -212,18 +260,17 @@ window.voteQuestion = async function(questionId, voteType) {
     }
     
     const questionRef = doc(db, 'questions', questionId);
-    if (voteType === 'upvote') {
-        await updateDoc(questionRef, {
-            upvotes: increment(1)
-        });
-    } else {
-        await updateDoc(questionRef, {
-            downvotes: increment(1)
-        });
+    try {
+        if (voteType === 'upvote') {
+            await updateDoc(questionRef, { upvotes: increment(1) });
+        } else {
+            await updateDoc(questionRef, { downvotes: increment(1) });
+        }
+    } catch (error) {
+        alert('Vote failed: ' + error.message);
     }
 };
 
-// Send anonymous question
 window.sendAnonymousQuestion = async function() {
     const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
@@ -233,40 +280,44 @@ window.sendAnonymousQuestion = async function() {
         alert('Please write a question');
         return;
     }
-    
+    if (question.length < 5) {
+        alert('Question must be at least 5 characters');
+        return;
+    }
     if (!toSlug) {
-        alert('Invalid link. Please use a shared anonymous link.');
+        alert('Invalid link');
         return;
     }
     
-    // Find user by slug
-    const q = query(collection(db, 'users'), where('slug', '==', toSlug));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-        alert('User not found. The link might be invalid.');
-        return;
-    }
-    
-    const recipient = querySnapshot.docs[0];
-    
-    await addDoc(collection(db, 'questions'), {
-        toUid: recipient.data().uid,
-        toSlug: toSlug,
-        question: question,
-        upvotes: 0,
-        downvotes: 0,
-        askedAt: new Date().toISOString(),
-        reply: null
-    });
-    
-    document.getElementById('anonymousQuestion').value = '';
     const statusDiv = document.getElementById('messageStatus');
-    if (statusDiv) {
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously! Your secret is safe. 🇲🇼';
-        statusDiv.style.color = '#2c5f2d';
-        statusDiv.style.fontWeight = 'bold';
+    statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Sending...';
+    
+    try {
+        const q = query(collection(db, 'users'), where('slug', '==', toSlug));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            statusDiv.innerHTML = 'User not found';
+            return;
+        }
+        
+        const recipient = querySnapshot.docs[0];
+        
+        await addDoc(collection(db, 'questions'), {
+            toUid: recipient.data().uid,
+            toSlug: toSlug,
+            question: question,
+            upvotes: 0,
+            downvotes: 0,
+            askedAt: new Date().toISOString()
+        });
+        
+        document.getElementById('anonymousQuestion').value = '';
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously!';
         setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
+        
+    } catch (error) {
+        statusDiv.innerHTML = 'Failed to send';
     }
 };
 
@@ -280,42 +331,39 @@ function escapeHtml(str) {
     });
 }
 
-// Load ask page
 async function loadAskPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const toSlug = urlParams.get('to');
     
     if (toSlug) {
-        const q = query(collection(db, 'users'), where('slug', '==', toSlug));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-            const recipient = querySnapshot.docs[0].data();
-            const displayName = recipient.name || recipient.email.split('@')[0];
-            document.getElementById('recipientName').innerHTML = displayName;
-        } else {
-            document.getElementById('recipientName').innerHTML = 'this person';
-        }
-    } else {
-        document.getElementById('recipientName').innerHTML = 'someone';
+        try {
+            const q = query(collection(db, 'users'), where('slug', '==', toSlug));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const recipient = querySnapshot.docs[0].data();
+                document.getElementById('recipientName').innerHTML = recipient.name || recipient.email.split('@')[0];
+            }
+        } catch (error) {}
+    }
+    
+    const textarea = document.getElementById('anonymousQuestion');
+    const charCount = document.getElementById('charCount');
+    if (textarea && charCount) {
+        textarea.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
     }
 }
 
-// ========== FIXED AUTO-LOGIN ==========
-// This runs when the page loads and checks if user is already logged in
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     const path = window.location.pathname;
+    const isLoginPage = path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/');
     
-    // Only run auto-login check on index/login page
-    if (path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/') || path === '/eeeesh-malawi/') {
-        console.log('Checking auto-login...');
-        
+    if (isLoginPage) {
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log('User found, redirecting to dashboard:', user.email);
                 window.location.href = getBaseUrl() + 'dashboard.html';
-            } else {
-                console.log('No user logged in');
             }
         });
     } else if (path.includes('dashboard.html')) {

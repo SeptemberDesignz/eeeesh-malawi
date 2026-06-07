@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ask anonymously • Eeeesh Malawi</title>
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -21,7 +20,10 @@
             
             <div class="question-input-wrapper">
                 <i class="fas fa-pen-fancy"></i>
-                <textarea id="anonymousQuestion" rows="5" placeholder="Type your anonymous question here... (e.g., 'Why did you really leave that job?' or 'What's the tea?')" class="apple-input"></textarea>
+                <textarea id="anonymousQuestion" rows="5" maxlength="500" placeholder="Type your anonymous question here... (min 5 characters, max 500)" class="apple-input"></textarea>
+            </div>
+            <div class="char-counter">
+                <span id="charCount">0</span>/500 characters
             </div>
             
             <button onclick="sendAnonymousQuestion()" class="apple-btn red">

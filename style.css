@@ -261,19 +261,13 @@ textarea.apple-input {
 .user-welcome h2 {
     font-size: 22px;
     font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+    margin: 0;
 }
 
 .user-email {
     color: #8e8e93;
     font-size: 14px;
     margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 .logout-btn {
@@ -413,26 +407,46 @@ textarea.apple-input {
     box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
 .question-text {
     font-size: 17px;
     line-height: 1.4;
-    margin-bottom: 16px;
     color: #1c1c1e;
     display: flex;
     align-items: flex-start;
     gap: 8px;
+    flex: 1;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #ff3b30;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px 10px;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    opacity: 0.7;
 }
 
 .vote-buttons {
     display: flex;
     gap: 16px;
-    margin-bottom: 16px;
 }
 
 .vote-btn {
     background: #f9f9fb;
     border: 1px solid #e5e5ea;
-    padding: 8px 16px;
+    padding: 8px 20px;
     border-radius: 100px;
     cursor: pointer;
     font-size: 14px;
@@ -447,49 +461,6 @@ textarea.apple-input {
     background: #ff3b30;
     color: white;
     border-color: #ff3b30;
-}
-
-.reply-area {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.reply-input-wrapper {
-    position: relative;
-}
-
-.reply-input-wrapper i {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #8e8e93;
-    font-size: 14px;
-}
-
-.reply-input {
-    width: 100%;
-    padding: 12px;
-    padding-left: 40px;
-    border: 1px solid #e5e5ea;
-    border-radius: 14px;
-    font-family: inherit;
-    font-size: 15px;
-}
-
-.reply-text {
-    background: #f9f9fb;
-    padding: 12px;
-    border-radius: 14px;
-    margin-top: 12px;
-    color: #3a3a3e;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
 }
 
 .empty-state {
@@ -528,6 +499,14 @@ textarea.apple-input {
 
 .question-input-wrapper textarea {
     padding-left: 44px;
+}
+
+.char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #8e8e93;
+    margin-top: 5px;
+    margin-bottom: 10px;
 }
 
 .privacy-box {
@@ -615,5 +594,15 @@ hr {
     
     .user-welcome h2 {
         font-size: 18px;
+    }
+    
+    .vote-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .vote-btn {
+        width: 100%;
+        justify-content: center;
     }
 }

@@ -9,11 +9,5 @@ const firebaseConfig = {
     measurementId: "G-MYYN74DLQ7"
 };
 
-// reCAPTCHA keys (optional - not being used currently)
-const RECAPTCHA_SITE_KEY = "6Lca-BEtAAAAAEbldgoLRgToS5Zs_TW2b3ib3iVw";
-const RECAPTCHA_SECRET_KEY = "6Lca-BEtAAAAABSKqgQ1r0gg34T9cGegYLENJPuo";
-
-// Export for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { firebaseConfig, RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY };
-}
+// Make available globally
+window.firebaseConfig = firebaseConfig;
