@@ -304,7 +304,7 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
-// ========== REVEAL SENDER PAYMENT ==========
+// ========== PREMIUM PAYMENT MODAL ==========
 window.initiateRevealPayment = async function(questionId) {
     if (!currentUser) {
         alert('Please login to reveal anonymous sender');
@@ -335,75 +335,134 @@ function showPaymentModal(questionId) {
     modal.innerHTML = `
         <div class="payment-modal-content">
             <div class="payment-modal-header">
-                <i class="fas fa-crown"></i>
-                <h3>Reveal Anonymous Sender</h3>
+                <div class="header-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="header-text">
+                    <h3>Reveal Anonymous Sender</h3>
+                    <p>Pay MWK 5,000 to unlock who asked you</p>
+                </div>
                 <button class="close-modal" onclick="closePaymentModal()">&times;</button>
             </div>
             <div class="payment-modal-body">
-                <div class="payment-amount">
-                    <span class="currency">MWK</span>
-                    <span class="amount">${REVEAL_PRICE.toLocaleString()}</span>
+                <div class="payment-amount-card">
+                    <span class="amount-label">Amount to Pay</span>
+                    <div class="amount-value">
+                        <span class="currency">MWK</span>
+                        <span class="amount">${REVEAL_PRICE.toLocaleString()}</span>
+                    </div>
                 </div>
                 
                 <div class="payment-instructions">
-                    <h4><i class="fas fa-info-circle"></i> Payment Instructions</h4>
-                    <div class="instruction-step">
-                        <span class="step-number">1</span>
-                        <span>Send <strong>MWK ${REVEAL_PRICE.toLocaleString()}</strong> to:</span>
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Payment Instructions</span>
                     </div>
-                    <div class="payment-numbers">
-                        <div class="payment-number-box airtel">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>Airtel Money: <strong>${PAYMENT_NUMBERS.airtel}</strong></span>
-                            <button onclick="copyToClipboard('${PAYMENT_NUMBERS.airtel}')" class="copy-number"><i class="fas fa-copy"></i></button>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>Send payment to:</strong>
+                                <div class="payment-numbers">
+                                    <div class="payment-number airtel">
+                                        <i class="fas fa-mobile-alt"></i>
+                                        <div>
+                                            <small>Airtel Money</small>
+                                            <strong>${PAYMENT_NUMBERS.airtel}</strong>
+                                        </div>
+                                        <button onclick="copyToClipboard('${PAYMENT_NUMBERS.airtel}')" class="copy-btn">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <div class="payment-number tnm">
+                                        <i class="fas fa-mobile-alt"></i>
+                                        <div>
+                                            <small>TNM Mpamba</small>
+                                            <strong>${PAYMENT_NUMBERS.tnm}</strong>
+                                        </div>
+                                        <button onclick="copyToClipboard('${PAYMENT_NUMBERS.tnm}')" class="copy-btn">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="payment-number-box tnm">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>TNM Mpamba: <strong>${PAYMENT_NUMBERS.tnm}</strong></span>
-                            <button onclick="copyToClipboard('${PAYMENT_NUMBERS.tnm}')" class="copy-number"><i class="fas fa-copy"></i></button>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>Use reference code:</strong>
+                                <div class="reference-code">
+                                    <code>Eeeesh Malawi</code>
+                                    <button onclick="copyToClipboard('Eeeesh Malawi')" class="copy-btn">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="instruction-step">
-                        <span class="step-number">2</span>
-                        <span>Use reference: <strong class="ref-highlight">Eeeesh Malawi</strong></span>
-                        <button onclick="copyToClipboard('Eeeesh Malawi')" class="copy-number"><i class="fas fa-copy"></i></button>
-                    </div>
-                    <div class="instruction-step">
-                        <span class="step-number">3</span>
-                        <span>Fill in the form below after sending payment</span>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>Complete the form below</strong>
+                                <span>After sending payment, fill in your details</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="payment-confirmation-form">
-                    <h4><i class="fas fa-check-circle"></i> Confirm Your Payment</h4>
-                    <div class="input-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="senderName" placeholder="Your full name" class="apple-input">
+                <div class="payment-form">
+                    <div class="section-title">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Confirm Your Payment</span>
                     </div>
-                    <div class="input-icon">
-                        <i class="fas fa-phone"></i>
-                        <input type="tel" id="phoneNumber" placeholder="Your phone number (e.g., 0999123456)" class="apple-input">
+                    
+                    <div class="form-group">
+                        <div class="input-icon">
+                            <i class="fas fa-user-circle"></i>
+                            <input type="text" id="senderName" placeholder="Your full name" class="premium-input" autocomplete="off">
+                        </div>
+                        <div class="input-hint">Enter your name as it appears on mobile money</div>
                     </div>
-                    <div class="input-icon">
-                        <i class="fas fa-exchange-alt"></i>
-                        <select id="paymentMethod" class="apple-input">
-                            <option value="">Select payment method</option>
-                            <option value="airtel">Airtel Money</option>
-                            <option value="tnm">TNM Mpamba</option>
-                        </select>
+                    
+                    <div class="form-group">
+                        <div class="input-icon">
+                            <i class="fas fa-phone-alt"></i>
+                            <input type="tel" id="phoneNumber" placeholder="Your phone number" class="premium-input" autocomplete="off">
+                        </div>
+                        <div class="input-hint">Example: 0999123456 (10 digits)</div>
                     </div>
-                    <div class="input-icon">
-                        <i class="fas fa-hashtag"></i>
-                        <input type="text" id="transactionId" placeholder="Transaction ID / Reference number" class="apple-input">
+                    
+                    <div class="form-group">
+                        <div class="input-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                            <select id="paymentMethod" class="premium-select">
+                                <option value="" disabled selected>Select payment method</option>
+                                <option value="airtel">📱 Airtel Money</option>
+                                <option value="tnm">📱 TNM Mpamba</option>
+                            </select>
+                        </div>
                     </div>
-                    <button onclick="submitPaymentConfirmation('${questionId}')" class="apple-btn red">
-                        <i class="fas fa-paper-plane"></i> Submit Payment Confirmation
+                    
+                    <div class="form-group">
+                        <div class="input-icon">
+                            <i class="fas fa-hashtag"></i>
+                            <input type="text" id="transactionId" placeholder="Transaction ID / Reference number" class="premium-input" autocomplete="off">
+                        </div>
+                        <div class="input-hint">Enter the transaction ID from your mobile money receipt</div>
+                    </div>
+                    
+                    <button onclick="submitPaymentConfirmation('${questionId}')" class="premium-submit-btn">
+                        <i class="fas fa-lock"></i>
+                        <span>Submit Payment Confirmation</span>
+                        <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
                 
-                <div class="payment-info">
+                <div class="secure-info">
                     <i class="fas fa-shield-alt"></i>
-                    Your payment is secure. Admin will verify within 24 hours.
+                    <div>
+                        <strong>Secure Payment</strong>
+                        <p>Your payment is encrypted and secure. Admin will verify within 24 hours.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -432,6 +491,12 @@ window.submitPaymentConfirmation = async function(questionId) {
         return;
     }
     
+    const submitBtn = document.querySelector('.premium-submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Submitting...';
+    }
+    
     try {
         await addDoc(collection(db, 'payments'), {
             questionId: questionId,
@@ -452,6 +517,11 @@ window.submitPaymentConfirmation = async function(questionId) {
         
     } catch (error) {
         alert('Failed to submit: ' + error.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-lock"></i> Submit Payment Confirmation <i class="fas fa-arrow-right"></i>';
+        }
     }
 };
 
@@ -461,8 +531,13 @@ function showRevealedSender(questionData) {
     modal.innerHTML = `
         <div class="payment-modal-content">
             <div class="payment-modal-header">
-                <i class="fas fa-user-check"></i>
-                <h3>Sender Revealed!</h3>
+                <div class="header-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="header-text">
+                    <h3>Sender Revealed!</h3>
+                    <p>The anonymous sender has been identified</p>
+                </div>
                 <button class="close-modal" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</button>
             </div>
             <div class="payment-modal-body">
@@ -473,11 +548,14 @@ function showRevealedSender(questionData) {
                         <strong>Email:</strong> ${escapeHtml(questionData.senderEmail || 'hidden@example.com')}
                     </div>
                 </div>
-                <div class="payment-info">
+                <div class="secure-info">
                     <i class="fas fa-shield-alt"></i>
-                    This information is confidential. Please respect privacy.
+                    <div>
+                        <strong>Confidential Information</strong>
+                        <p>This information is for your eyes only. Please respect privacy.</p>
+                    </div>
                 </div>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="apple-btn red">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="premium-submit-btn" style="margin-top: 16px;">
                     <i class="fas fa-check"></i> Close
                 </button>
             </div>
