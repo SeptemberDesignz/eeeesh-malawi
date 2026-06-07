@@ -2,62 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Eeeesh Malawi — Ask Anonymously</title>
     <link rel="stylesheet" href="style.css">
+    <!-- reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
-<body class="login-page">
-    <div class="app-container">
-        <div class="header">
-            <h1>Eeeesh Malawi 🇲🇼 <span>anonymously</span></h1>
-            <p class="tagline">"Funsa mosadziwika — spill the tea"</p>
-        </div>
-        
-        <div class="content">
-            <!-- Login Form -->
-            <div id="loginForm">
-                <h2>Log in to receive anonymous questions</h2>
-                <div class="input-group">
-                    <label>📧 Email</label>
-                    <input type="email" id="loginEmail" placeholder="banda@example.com">
-                </div>
-                <div class="input-group">
-                    <label>🔒 Password</label>
-                    <input type="password" id="loginPassword" placeholder="••••••">
-                </div>
-                <button onclick="handleLogin()">Log in →</button>
-                <p style="text-align:center; margin-top:1rem;">
-                    <a href="#" onclick="showSignup()">No account? Create one</a>
-                </p>
+<body>
+    <div class="hero">
+        <div class="glass-card">
+            <div class="logo">
+                <span class="logo-icon">🇲🇼</span>
+                <h1>Eeeesh<span>Malawi</span></h1>
             </div>
-
-            <!-- Signup Form (hidden initially) -->
-            <div id="signupForm" style="display:none;">
-                <h2>Create your Eeeesh account</h2>
-                <div class="input-group">
-                    <label>👤 Display name (optional)</label>
-                    <input type="text" id="signupName" placeholder="Banda from Lilongwe">
-                </div>
-                <div class="input-group">
-                    <label>📧 Email (will be used to login)</label>
-                    <input type="email" id="signupEmail" placeholder="banda@example.com">
-                </div>
-                <div class="input-group">
-                    <label>🔒 Password</label>
-                    <input type="password" id="signupPassword" placeholder="min 6 characters">
-                </div>
-                <button onclick="handleSignup()">Create account</button>
-                <p style="text-align:center; margin-top:1rem;">
-                    <a href="#" onclick="showLogin()">← Back to login</a>
-                </p>
+            <p class="subtitle">Ask anything. Stay anonymous. No judgment.</p>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Log in</button>
+                <button class="tab-btn" onclick="switchTab('signup')">Sign up</button>
             </div>
             
-            <!-- Demo credentials hint -->
-            <div style="background:#f0e6d2; padding:12px; border-radius:20px; margin-top:20px; text-align:center; font-size:13px;">
-                📱 <strong>Demo account:</strong> banda@example.com / 123456
+            <!-- Login Form -->
+            <div id="loginTab" class="auth-form active">
+                <input type="email" id="loginEmail" placeholder="Email" class="apple-input">
+                <input type="password" id="loginPassword" placeholder="Password" class="apple-input">
+                <button onclick="handleLogin()" class="apple-btn red">Log in →</button>
+                <div class="divider">or</div>
+                <button onclick="handleGoogleSignIn()" class="apple-btn google">
+                    <span>🍎</span> Continue with Google
+                </button>
             </div>
+            
+            <!-- Signup Form -->
+            <div id="signupTab" class="auth-form">
+                <input type="text" id="signupName" placeholder="Display name" class="apple-input">
+                <input type="email" id="signupEmail" placeholder="Email" class="apple-input">
+                <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" class="apple-input">
+                <div id="recaptcha-container" class="recaptcha-box"></div>
+                <button onclick="handleSignup()" class="apple-btn red">Create account →</button>
+                <div class="divider">or</div>
+                <button onclick="handleGoogleSignIn()" class="apple-btn google">
+                    <span>🍎</span> Sign up with Google
+                </button>
+            </div>
+            
+            <p class="terms-text">
+                By continuing, you agree to our <a href="terms.html">Terms & Conditions</a>
+            </p>
         </div>
     </div>
-    <script src="script.js"></script>
+    
+    <!-- Firebase Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js"
+            }
+        }
+    </script>
+    <script src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

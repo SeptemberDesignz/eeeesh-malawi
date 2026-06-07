@@ -7,32 +7,45 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>Eeeesh Malawi <span>anonymous</span></h1>
-        </div>
-        
-        <div class="content">
-            <div id="recipientInfo" style="text-align:center; margin-bottom:20px;">
-                <h2>Ask <span id="recipientName">someone</span> anonymously</h2>
-                <p>Your question is 100% anonymous — no name, no email, no tracking.</p>
+    <div class="hero">
+        <div class="glass-card">
+            <div class="logo">
+                <span class="logo-icon">🤫</span>
+                <h1>Ask <span>anonymously</span></h1>
             </div>
-
-            <div class="input-group">
-                <label>💬 Your anonymous question:</label>
-                <textarea id="anonymousQuestion" rows="4" placeholder="e.g., 'Banda, why did you really leave that job?' or 'What's the tea on Area 49?'"></textarea>
+            <p style="text-align: center; margin-bottom: 20px;">
+                Ask <strong id="recipientName" style="color: #ff3b30;">...</strong> anything — they'll never know it's you.
+            </p>
+            
+            <textarea id="anonymousQuestion" rows="5" placeholder="Type your anonymous question here... (e.g., 'Why did you really leave that job?' or 'What's the tea?')" class="apple-input" style="margin: 10px 0;"></textarea>
+            <button onclick="sendAnonymousQuestion()" class="apple-btn red">Send anonymously →</button>
+            <div id="messageStatus" style="text-align: center; margin-top: 16px;"></div>
+            
+            <hr style="margin: 24px 0; border-color: #e5e5ea;">
+            
+            <div style="background: #f9f9fb; padding: 16px; border-radius: 20px;">
+                <p style="font-size: 13px; color: #8e8e93; text-align: center; margin: 0;">
+                    🔒 <strong>100% anonymous</strong><br>
+                    No names, no emails, no tracking. Your identity is completely safe.
+                </p>
             </div>
             
-            <button onclick="sendAnonymousQuestion()">Send anonymously →</button>
-            <div id="messageStatus" style="margin-top:1rem; text-align:center;"></div>
-            
-            <hr>
-            <p style="text-align:center; font-size:13px; color:#7f6e4a;">
-                ⚡ Nobody will ever know who asked. True anonymity.<br>
-                <a href="index.html">← Back to Eeeesh Malawi</a>
+            <p style="text-align: center; margin-top: 20px;">
+                <a href="index.html" style="color: #ff3b30; text-decoration: none;">← Back to Eeeesh Malawi</a>
             </p>
         </div>
     </div>
-    <script src="script.js"></script>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js"
+            }
+        }
+    </script>
+    <script src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>

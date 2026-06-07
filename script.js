@@ -1,45 +1,16 @@
-// ========== Helper Functions ==========
-const STORAGE_USERS = 'eeeesh_users';
-const STORAGE_QUESTIONS = 'eeeesh_questions';
+// Import Firebase modules
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc } from 'firebase/firestore';
+
+// Initialize Firebase with your config
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
 let currentUser = null;
-
-// Initialize data if empty
-function initData() {
-    if (!localStorage.getItem(STORAGE_USERS)) {
-        // Demo account for testing
-        const defaultUsers = [
-            { id: 'user1', email: 'banda@example.com', password: '123456', name: 'Banda from Lilongwe', slug: 'banda123', createdAt: new Date().toISOString() }
-        ];
-        localStorage.setItem(STORAGE_USERS, JSON.stringify(defaultUsers));
-    }
-    if (!localStorage.getItem(STORAGE_QUESTIONS)) {
-        // Add a sample question for demo
-        const sampleQuestions = [
-            {
-                id: 'sample1',
-                toSlug: 'banda123',
-                question: 'Eeeesh! Are you really happy at your current job? Be honest 👀',
-                askedAt: new Date().toISOString(),
-                reply: null,
-                isBlocked: false
-            }
-        ];
-        localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(sampleQuestions));
-    }
-}
-
-// Get current logged in user from session
-function getCurrentUser() {
-    const userJson = sessionStorage.getItem('eeeesh_current_user');
-    if (!userJson) return null;
-    return JSON.parse(userJson);
-}
-
-// Save logged in user
-function setCurrentUser(user) {
-    sessionStorage.setItem('eeeesh_current_user', JSON.stringify(user));
-    currentUser = user;
-}
+let recaptchaWidget = null;
 
 // Get base URL for GitHub Pages
 function getBaseUrl() {
@@ -50,21 +21,40 @@ function getBaseUrl() {
     return '/';
 }
 
-// Redirect if not logged in
-function requireAuth() {
-    const user = getCurrentUser();
-    const currentPage = window.location.pathname;
-    
-    if (!user && !currentPage.includes('index.html') && !currentPage.includes('ask.html')) {
-        window.location.href = getBaseUrl() + 'index.html';
-        return false;
+// Initialize reCAPTCHA
+window.renderRecaptcha = function() {
+    const container = document.getElementById('recaptcha-container');
+    if (container && typeof grecaptcha !== 'undefined') {
+        recaptchaWidget = grecaptcha.render('recaptcha-container', {
+            sitekey: RECAPTCHA_SITE_KEY,
+            theme: 'light',
+            size: 'normal'
+        });
     }
-    return true;
-}
+};
 
-// ========== Auth Functions (index.html) ==========
-function handleLogin() {
-    const email = document.getElementById('loginEmail').value.trim();
+// Tab switching
+window.switchTab = function(tab) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    
+    if (tab === 'login') {
+        document.querySelector('.tab-btn:first-child').classList.add('active');
+        document.getElementById('loginTab').classList.add('active');
+    } else {
+        document.querySelector('.tab-btn:last-child').classList.add('active');
+        document.getElementById('signupTab').classList.add('active');
+        setTimeout(() => {
+            if (typeof grecaptcha !== 'undefined' && !recaptchaWidget) {
+                window.renderRecaptcha();
+            }
+        }, 100);
+    }
+};
+
+// Email Login
+window.handleLogin = async function() {
+    const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     
     if (!email || !password) {
@@ -72,200 +62,236 @@ function handleLogin() {
         return;
     }
     
-    const users = JSON.parse(localStorage.getItem(STORAGE_USERS));
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-        setCurrentUser({ id: user.id, email: user.email, name: user.name, slug: user.slug });
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
         window.location.href = getBaseUrl() + 'dashboard.html';
-    } else {
-        alert('Invalid email or password. Try banda@example.com / 123456');
+    } catch (error) {
+        alert('Login failed: ' + error.message);
     }
-}
+};
 
-function handleSignup() {
+// Signup with Email
+window.handleSignup = async function() {
     const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value.trim();
+    const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     
     if (!email || !password || password.length < 6) {
-        alert('Email and password (min 6 chars) required');
+        alert('Email and password (min 6 characters) required');
         return;
     }
     
-    const users = JSON.parse(localStorage.getItem(STORAGE_USERS));
-    if (users.find(u => u.email === email)) {
-        alert('Email already exists. Login instead.');
-        return;
+    // Verify reCAPTCHA
+    if (recaptchaWidget && typeof grecaptcha !== 'undefined') {
+        const token = grecaptcha.getResponse(recaptchaWidget);
+        if (!token) {
+            alert('Please complete the reCAPTCHA verification');
+            return;
+        }
     }
     
-    const newUser = {
-        id: 'user_' + Date.now(),
-        email: email,
-        password: password,
-        name: name || email.split('@')[0],
-        slug: email.split('@')[0] + '_' + Math.floor(Math.random() * 10000),
-        createdAt: new Date().toISOString()
-    };
-    
-    users.push(newUser);
-    localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
-    alert('Account created! Please login.');
-    showLogin();
-}
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Save user profile to Firestore
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            name: name || email.split('@')[0],
+            email: email,
+            slug: (name || email.split('@')[0]).toLowerCase().replace(/\s/g, '') + '_' + Date.now(),
+            createdAt: new Date().toISOString()
+        });
+        
+        alert('Account created successfully! You are now logged in.');
+        window.location.href = getBaseUrl() + 'dashboard.html';
+    } catch (error) {
+        alert('Signup failed: ' + error.message);
+    }
+};
 
-function showSignup() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
-}
+// Google Sign-In
+window.handleGoogleSignIn = async function() {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        
+        // Check if user exists in Firestore
+        const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', result.user.uid)));
+        
+        if (userDoc.empty) {
+            await setDoc(doc(db, 'users', result.user.uid), {
+                uid: result.user.uid,
+                name: result.user.displayName || result.user.email.split('@')[0],
+                email: result.user.email,
+                slug: (result.user.displayName || result.user.email.split('@')[0]).toLowerCase().replace(/\s/g, '') + '_' + Date.now(),
+                createdAt: new Date().toISOString()
+            });
+        }
+        
+        window.location.href = getBaseUrl() + 'dashboard.html';
+    } catch (error) {
+        alert('Google sign-in failed: ' + error.message);
+    }
+};
 
-function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('signupForm').style.display = 'none';
-}
-
-function logout() {
-    sessionStorage.removeItem('eeeesh_current_user');
+// Logout
+window.logout = function() {
+    signOut(auth);
     window.location.href = getBaseUrl() + 'index.html';
+};
+
+// Copy link
+window.copyLink = function(link) {
+    navigator.clipboard.writeText(link);
+    alert('✅ Link copied! Share it on WhatsApp or Facebook.');
+};
+
+// Share to WhatsApp
+window.shareToWhatsApp = function(link, name) {
+    const message = `🇲🇼 Eeeesh Malawi: Ask me anything anonymously! ${link}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+};
+
+// Load dashboard
+async function loadDashboard() {
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = getBaseUrl() + 'index.html';
+            return;
+        }
+        
+        currentUser = user;
+        
+        // Get user profile
+        const userDoc = await getDocs(query(collection(db, 'users'), where('uid', '==', user.uid)));
+        if (userDoc.empty) {
+            console.error('User profile not found');
+            return;
+        }
+        
+        const userData = userDoc.docs[0].data();
+        const anonymousLink = `${window.location.origin}${getBaseUrl()}ask.html?to=${userData.slug}`;
+        
+        document.getElementById('userName').innerHTML = userData.name || user.email.split('@')[0];
+        document.getElementById('userEmail').innerHTML = user.email;
+        document.getElementById('anonymousLink').innerHTML = anonymousLink;
+        
+        // Listen to questions in real-time
+        const q = query(collection(db, 'questions'), where('toUid', '==', user.uid));
+        onSnapshot(q, (snapshot) => {
+            const questions = [];
+            snapshot.forEach(doc => {
+                questions.push({ id: doc.id, ...doc.data() });
+            });
+            renderQuestions(questions);
+        });
+    });
 }
 
-// ========== Dashboard Functions ==========
-function loadDashboard() {
-    if (!requireAuth()) return;
-    
-    const user = getCurrentUser();
-    if (!user) return;
-    
-    // Show user info
-    const userInfoDiv = document.getElementById('userInfo');
-    if (userInfoDiv) {
-        userInfoDiv.innerHTML = `👋 Hi, ${user.name || user.email} 🇲🇼`;
-    }
-    
-    // Generate anonymous link
-    const baseUrl = window.location.origin + getBaseUrl();
-    const anonymousLink = `${baseUrl}ask.html?to=${user.slug}`;
-    const linkElement = document.getElementById('anonymousLink');
-    if (linkElement) {
-        linkElement.textContent = anonymousLink;
-    }
-    
-    // Load questions for this user
-    renderQuestions();
-}
-
-function renderQuestions() {
-    const user = getCurrentUser();
-    if (!user) return;
-    
-    const allQuestions = JSON.parse(localStorage.getItem(STORAGE_QUESTIONS));
-    const myQuestions = allQuestions.filter(q => q.toSlug === user.slug && !q.isBlocked);
-    
+function renderQuestions(questions) {
     const container = document.getElementById('questionsList');
     if (!container) return;
     
-    if (myQuestions.length === 0) {
-        container.innerHTML = '<div class="empty-msg">🤫 No anonymous questions yet. Share your link above!</div>';
+    if (questions.length === 0) {
+        container.innerHTML = '<div class="empty-state">🤫 No anonymous questions yet. Share your link above!</div>';
         return;
     }
     
-    container.innerHTML = myQuestions.map(q => `
-        <div class="question-item" data-id="${q.id}">
+    // Sort by newest first
+    questions.sort((a, b) => new Date(b.askedAt) - new Date(a.askedAt));
+    
+    container.innerHTML = questions.map(q => `
+        <div class="question-card" data-id="${q.id}">
             <div class="question-text">❓ ${escapeHtml(q.question)}</div>
-            <div class="question-meta">Asked ${new Date(q.askedAt).toLocaleString()}</div>
-            ${q.reply ? `<div class="reply-text">📝 Your reply: ${escapeHtml(q.reply)}</div>` : `
+            <div class="vote-buttons">
+                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote')">
+                    👍 ${q.upvotes || 0}
+                </button>
+                <button class="vote-btn" onclick="voteQuestion('${q.id}', 'downvote')">
+                    👎 ${q.downvotes || 0}
+                </button>
+            </div>
+            ${q.reply ? `<div class="reply-text">💬 Your reply: ${escapeHtml(q.reply)}</div>` : `
                 <div class="reply-area">
-                    <input type="text" class="reply-input" id="reply-${q.id}" placeholder="Write a public reply...">
-                    <button onclick="postReply('${q.id}')" class="small-btn">Reply</button>
-                    <button onclick="blockQuestion('${q.id}')" class="small-btn" style="background:#9e2a2a;">Block</button>
+                    <input type="text" id="reply-${q.id}" class="reply-input" placeholder="Write your public reply...">
+                    <button onclick="postReply('${q.id}')" class="apple-btn red" style="margin-top:8px;">Post reply</button>
                 </div>
             `}
         </div>
     `).join('');
 }
 
-function postReply(questionId) {
+window.voteQuestion = async function(questionId, voteType) {
+    if (!currentUser) {
+        alert('Please login to vote');
+        return;
+    }
+    
+    const questionRef = doc(db, 'questions', questionId);
+    if (voteType === 'upvote') {
+        await updateDoc(questionRef, {
+            upvotes: increment(1)
+        });
+    } else {
+        await updateDoc(questionRef, {
+            downvotes: increment(1)
+        });
+    }
+};
+
+window.postReply = async function(questionId) {
     const replyInput = document.getElementById(`reply-${questionId}`);
-    const replyText = replyInput?.value.trim();
-    if (!replyText) return alert('Write a reply first');
+    const reply = replyInput?.value.trim();
     
-    const allQuestions = JSON.parse(localStorage.getItem(STORAGE_QUESTIONS));
-    const qIndex = allQuestions.findIndex(q => q.id === questionId);
-    if (qIndex !== -1) {
-        allQuestions[qIndex].reply = replyText;
-        allQuestions[qIndex].repliedAt = new Date().toISOString();
-        localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(allQuestions));
-        renderQuestions();
+    if (!reply) {
+        alert('Write a reply first');
+        return;
     }
-}
-
-function blockQuestion(questionId) {
-    if (!confirm('Block this anonymous user? They won\'t be able to ask you again.')) return;
     
-    const allQuestions = JSON.parse(localStorage.getItem(STORAGE_QUESTIONS));
-    const qIndex = allQuestions.findIndex(q => q.id === questionId);
-    if (qIndex !== -1) {
-        allQuestions[qIndex].isBlocked = true;
-        localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(allQuestions));
-        renderQuestions();
-    }
-}
+    const questionRef = doc(db, 'questions', questionId);
+    await updateDoc(questionRef, {
+        reply: reply,
+        repliedAt: new Date().toISOString()
+    });
+    
+    alert('✅ Reply posted!');
+};
 
-function copyLink() {
-    const linkText = document.getElementById('anonymousLink')?.textContent;
-    if (linkText) {
-        navigator.clipboard.writeText(linkText);
-        alert('✅ Link copied! Share it on WhatsApp or Facebook.');
-    }
-}
-
-// ========== Ask Page (public anonymous) ==========
-function loadAskPage() {
+// Send anonymous question
+window.sendAnonymousQuestion = async function() {
+    const question = document.getElementById('anonymousQuestion').value.trim();
     const urlParams = new URLSearchParams(window.location.search);
     const toSlug = urlParams.get('to');
     
-    if (toSlug) {
-        const users = JSON.parse(localStorage.getItem(STORAGE_USERS));
-        const recipient = users.find(u => u.slug === toSlug);
-        if (recipient) {
-            const displayName = recipient.name || recipient.email.split('@')[0];
-            document.getElementById('recipientName').innerHTML = displayName;
-            document.getElementById('recipientName').style.color = '#d97a2b';
-            document.getElementById('recipientName').style.fontWeight = 'bold';
-        } else {
-            document.getElementById('recipientName').innerHTML = 'this person';
-        }
-        window.currentRecipientSlug = toSlug;
-    } else {
-        document.getElementById('recipientName').innerHTML = 'anyone (share a link first)';
-        window.currentRecipientSlug = null;
-    }
-}
-
-function sendAnonymousQuestion() {
-    const question = document.getElementById('anonymousQuestion')?.value.trim();
     if (!question) {
-        alert('Please write your anonymous question first!');
+        alert('Please write a question');
         return;
     }
     
-    if (!window.currentRecipientSlug) {
-        alert('❌ Invalid link. Please use a shared anonymous link from someone.\n\nAsk them to share their Eeeesh link with you.');
+    if (!toSlug) {
+        alert('Invalid link. Please use a shared anonymous link.');
         return;
     }
     
-    const allQuestions = JSON.parse(localStorage.getItem(STORAGE_QUESTIONS));
-    const newQuestion = {
-        id: 'q_' + Date.now() + '_' + Math.random(),
-        toSlug: window.currentRecipientSlug,
+    // Find user by slug
+    const q = query(collection(db, 'users'), where('slug', '==', toSlug));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+        alert('User not found. The link might be invalid.');
+        return;
+    }
+    
+    const recipient = querySnapshot.docs[0];
+    
+    await addDoc(collection(db, 'questions'), {
+        toUid: recipient.data().uid,
+        toSlug: toSlug,
         question: question,
+        upvotes: 0,
+        downvotes: 0,
         askedAt: new Date().toISOString(),
-        reply: null,
-        isBlocked: false
-    };
-    
-    allQuestions.push(newQuestion);
-    localStorage.setItem(STORAGE_QUESTIONS, JSON.stringify(allQuestions));
+        reply: null
+    });
     
     document.getElementById('anonymousQuestion').value = '';
     const statusDiv = document.getElementById('messageStatus');
@@ -275,9 +301,8 @@ function sendAnonymousQuestion() {
         statusDiv.style.fontWeight = 'bold';
         setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
     }
-}
+};
 
-// Helper to escape HTML
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -288,19 +313,42 @@ function escapeHtml(str) {
     });
 }
 
-// ========== Page Load Handler ==========
-window.onload = function() {
-    initData();
+// Load ask page
+async function loadAskPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const toSlug = urlParams.get('to');
     
-    const path = window.location.pathname;
-    const filename = path.split('/').pop();
-    
-    if (filename === 'dashboard.html' || path.includes('dashboard')) {
-        loadDashboard();
-    } else if (filename === 'ask.html' || path.includes('ask')) {
-        loadAskPage();
-    } else if (filename === 'index.html' || filename === '' || path.endsWith('/')) {
-        // Login page — nothing extra, but show demo hint
-        console.log('Eeeesh Malawi — Login page loaded');
+    if (toSlug) {
+        const q = query(collection(db, 'users'), where('slug', '==', toSlug));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            const recipient = querySnapshot.docs[0].data();
+            const displayName = recipient.name || recipient.email.split('@')[0];
+            document.getElementById('recipientName').innerHTML = displayName;
+        } else {
+            document.getElementById('recipientName').innerHTML = 'this person';
+        }
+    } else {
+        document.getElementById('recipientName').innerHTML = 'someone';
     }
-};
+}
+
+// Initialize based on page
+const path = window.location.pathname;
+if (path.includes('dashboard.html')) {
+    loadDashboard();
+} else if (path.includes('ask.html')) {
+    loadAskPage();
+} else if (path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/')) {
+    // Wait for DOM to load then setup reCAPTCHA
+    window.addEventListener('load', () => {
+        if (document.getElementById('recaptcha-container')) {
+            setTimeout(() => {
+                if (typeof grecaptcha !== 'undefined') {
+                    window.renderRecaptcha();
+                }
+            }, 500);
+        }
+    });
+}

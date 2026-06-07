@@ -7,33 +7,45 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>Eeeesh Malawi <span>inbox</span></h1>
-            <div class="logout-link">
-                <button onclick="logout()" class="text-btn">🚪 Logout</button>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="user-welcome">
+                <div>
+                    <h2>Welcome, <span id="userName">...</span> 🇲🇼</h2>
+                    <div class="user-email" id="userEmail"></div>
+                </div>
+                <button onclick="logout()" style="background: none; color: #ff3b30; border: none; font-size: 15px; cursor: pointer;">🚪 Logout</button>
+            </div>
+            
+            <div class="link-card">
+                <strong>🔗 Your anonymous link</strong>
+                <div class="link-code" id="anonymousLink">Loading...</div>
+                <button onclick="copyLink(document.getElementById('anonymousLink').innerText)" class="apple-btn red" style="margin-bottom: 12px;">📋 Copy link</button>
+                <button onclick="shareToWhatsApp(document.getElementById('anonymousLink').innerText, document.getElementById('userName').innerText)" class="whatsapp-btn">
+                    💚 Share to WhatsApp Status
+                </button>
+                <p style="font-size: 12px; color: #8e8e93; margin-top: 12px;">
+                    Share this link on WhatsApp, Facebook, or SMS — nobody will know it's you!
+                </p>
             </div>
         </div>
         
-        <div class="content">
-            <div id="userInfo" class="user-badge"></div>
-            
-            <!-- Your Anonymous Link Card -->
-            <div class="link-card">
-                <strong>🔗 Your anonymous link (share anywhere):</strong><br>
-                <code id="anonymousLink" style="font-size:14px; word-break:break-all;"></code>
-                <button onclick="copyLink()" class="small-btn" style="margin-top:12px;">📋 Copy link</button>
-                <p class="hint">💬 Share on WhatsApp, Facebook, or SMS — nobody knows it's you! <br> 🇲🇼 "Uzifunsa mosadziwika"</p>
-            </div>
-
-            <hr>
-
-            <h3>📬 Anonymous questions for you:</h3>
-            <div id="questionsList">
-                <div class="empty-msg">Loading...</div>
-            </div>
+        <h3 style="margin-bottom: 16px; font-weight: 600;">📬 Anonymous questions for you</h3>
+        <div id="questionsList">
+            <div class="loading">Loading your inbox...</div>
         </div>
     </div>
-    <script src="script.js"></script>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js"
+            }
+        }
+    </script>
+    <script src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
