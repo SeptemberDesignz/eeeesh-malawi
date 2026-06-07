@@ -1,4 +1,117 @@
-/* Premium Icon Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+    min-height: 100vh;
+    color: #1c1c1e;
+}
+
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: radial-gradient(circle at 10% 20%, rgba(255,59,48,0.05) 0%, rgba(255,255,255,0) 70%);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(20px);
+    border-radius: 48px;
+    padding: 40px 32px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,59,48,0.1);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo i {
+    font-size: 52px;
+    color: #ff3b30;
+    margin-bottom: 12px;
+}
+
+.logo h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #ff3b30 0%, #ff6b62 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.logo h1 span {
+    font-weight: 400;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: #1c1c1e;
+}
+
+.subtitle {
+    text-align: center;
+    color: #8e8e93;
+    font-size: 15px;
+    margin-bottom: 32px;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+    background: #f2f2f7;
+    padding: 4px;
+    border-radius: 100px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #8e8e93;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tab-btn i {
+    font-size: 14px;
+}
+
+.tab-btn.active {
+    background: white;
+    color: #ff3b30;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.auth-form {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-form.active {
+    display: flex;
+}
+
 .input-icon {
     position: relative;
     display: flex;
@@ -10,13 +123,213 @@
     left: 16px;
     color: #8e8e93;
     font-size: 16px;
+    pointer-events: none;
 }
 
-.input-icon .apple-input {
+.apple-input {
+    width: 100%;
+    padding: 16px 18px;
     padding-left: 44px;
+    font-size: 17px;
+    border: 1px solid #e5e5ea;
+    border-radius: 14px;
+    background: #f9f9fb;
+    transition: all 0.2s ease;
+    font-family: inherit;
 }
 
-/* Button Groups */
+.apple-input:focus {
+    outline: none;
+    border-color: #ff3b30;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255,59,48,0.1);
+}
+
+textarea.apple-input {
+    padding-left: 18px;
+}
+
+.apple-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 17px;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.apple-btn i {
+    font-size: 18px;
+}
+
+.apple-btn.red {
+    background: #ff3b30;
+    color: white;
+    box-shadow: 0 2px 12px rgba(255,59,48,0.3);
+}
+
+.apple-btn.red:hover {
+    background: #ff2a1f;
+    transform: scale(0.98);
+}
+
+.apple-btn.google {
+    background: white;
+    color: #1c1c1e;
+    border: 1px solid #e5e5ea;
+}
+
+.apple-btn.google:hover {
+    background: #f9f9fb;
+}
+
+.apple-btn.google i {
+    color: #4285f4;
+}
+
+.divider {
+    text-align: center;
+    color: #8e8e93;
+    font-size: 13px;
+    margin: 8px 0;
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #e5e5ea;
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.terms-text {
+    text-align: center;
+    font-size: 13px;
+    color: #8e8e93;
+    margin-top: 24px;
+}
+
+.terms-text a {
+    color: #ff3b30;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.terms-text a:hover {
+    text-decoration: underline;
+}
+
+.dashboard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-header {
+    background: white;
+    border-radius: 32px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    border: 1px solid #f0f0f0;
+}
+
+.user-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.user-welcome h2 {
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.user-email {
+    color: #8e8e93;
+    font-size: 14px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.logout-btn {
+    background: none;
+    border: 1px solid #ff3b30;
+    color: #ff3b30;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.logout-btn:hover {
+    background: #ff3b30;
+    color: white;
+}
+
+.link-card {
+    background: #f9f9fb;
+    border-radius: 24px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #e5e5ea;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.card-header i {
+    color: #ff3b30;
+}
+
+.link-code {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+    margin: 12px 0;
+    border: 1px solid #e5e5ea;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .button-group {
     display: flex;
     gap: 12px;
@@ -30,32 +343,38 @@
     flex: 1;
 }
 
-.logout-btn {
-    background: none;
-    border: 1px solid #ff3b30;
-    color: #ff3b30;
-    padding: 8px 16px;
-    border-radius: 100px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-    background: #ff3b30;
+.whatsapp-btn {
+    background: #25D366;
     color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    font-size: 15px;
 }
 
-/* Card Header */
-.card-header {
+.whatsapp-btn i {
+    font-size: 18px;
+}
+
+.hint-text {
+    font-size: 12px;
+    color: #8e8e93;
+    margin-top: 12px;
+    text-align: center;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
+    justify-content: center;
+    gap: 6px;
 }
 
-/* Inbox Header */
 .inbox-header {
     display: flex;
     align-items: center;
@@ -66,6 +385,9 @@
 .inbox-header h3 {
     font-size: 18px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .badge {
@@ -77,7 +399,119 @@
     font-weight: 600;
 }
 
-/* Question Input Wrapper */
+.question-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+}
+
+.question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.question-text {
+    font-size: 17px;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    color: #1c1c1e;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.vote-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.vote-btn {
+    background: #f9f9fb;
+    border: 1px solid #e5e5ea;
+    padding: 8px 16px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vote-btn:hover {
+    background: #ff3b30;
+    color: white;
+    border-color: #ff3b30;
+}
+
+.reply-area {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reply-input-wrapper {
+    position: relative;
+}
+
+.reply-input-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8e8e93;
+    font-size: 14px;
+}
+
+.reply-input {
+    width: 100%;
+    padding: 12px;
+    padding-left: 40px;
+    border: 1px solid #e5e5ea;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 15px;
+}
+
+.reply-text {
+    background: #f9f9fb;
+    padding: 12px;
+    border-radius: 14px;
+    margin-top: 12px;
+    color: #3a3a3e;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8e8e93;
+    background: white;
+    border-radius: 24px;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #ff3b30;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #8e8e93;
+}
+
 .question-input-wrapper {
     position: relative;
     margin: 20px 0;
@@ -96,7 +530,6 @@
     padding-left: 44px;
 }
 
-/* Privacy Box */
 .privacy-box {
     background: #f9f9fb;
     padding: 16px;
@@ -113,14 +546,12 @@
     color: #25D366;
 }
 
-/* Status Message */
 .status-message {
     text-align: center;
     margin-top: 16px;
     font-weight: 500;
 }
 
-/* Back Link */
 .back-link {
     text-align: center;
     margin-top: 20px;
@@ -130,55 +561,21 @@
     color: #8e8e93;
     text-decoration: none;
     font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .back-link a:hover {
     color: #ff3b30;
 }
 
-/* Hint Text */
-.hint-text {
-    font-size: 12px;
-    color: #8e8e93;
-    margin-top: 12px;
-    text-align: center;
+hr {
+    margin: 24px 0;
+    border: none;
+    border-top: 1px solid #e5e5ea;
 }
 
-/* Vote Buttons Enhancement */
-.vote-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.vote-btn i {
-    font-size: 14px;
-}
-
-/* Reply Area Enhancement */
-.reply-area {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.reply-input-wrapper {
-    position: relative;
-}
-
-.reply-input-wrapper i {
-    position: absolute;
-    left: 12px;
-    top: 12px;
-    color: #8e8e93;
-    font-size: 14px;
-}
-
-.reply-input {
-    padding-left: 36px;
-}
-
-/* Loading Animation */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -187,13 +584,36 @@
     animation: spin 1s linear infinite;
 }
 
-/* Responsive */
 @media (max-width: 600px) {
+    .glass-card {
+        padding: 32px 24px;
+    }
+    
+    .logo h1 {
+        font-size: 28px;
+    }
+    
+    .dashboard-container {
+        padding: 12px;
+    }
+    
+    .dashboard-header {
+        padding: 16px;
+    }
+    
     .button-group {
         flex-direction: column;
     }
     
     .apple-btn.small {
         width: 100%;
+    }
+    
+    .whatsapp-btn {
+        width: 100%;
+    }
+    
+    .user-welcome h2 {
+        font-size: 18px;
     }
 }

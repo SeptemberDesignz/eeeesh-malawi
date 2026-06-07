@@ -4,70 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms & Conditions - Eeeesh Malawi</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
         .terms-container {
             max-width: 800px;
-            margin: 40px auto;
-            padding: 40px;
+            margin: 0 auto;
             background: white;
-            border-radius: 32px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-radius: 48px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
         }
-        .terms-container h1 { color: #ff3b30; margin-bottom: 20px; font-size: 32px; }
-        .terms-container h2 { font-size: 20px; margin: 28px 0 12px; color: #1c1c1e; }
-        .terms-container p { line-height: 1.6; color: #3a3a3e; margin-bottom: 16px; }
-        .terms-container ul { margin-left: 24px; margin-bottom: 16px; color: #3a3a3e; }
-        .terms-container li { margin-bottom: 8px; }
-        .back-btn {
-            display: inline-block;
-            margin-top: 32px;
+        .terms-container h1 {
             color: #ff3b30;
-            text-decoration: none;
-            font-weight: 600;
+            margin-bottom: 16px;
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .terms-container h2 {
+            font-size: 22px;
+            margin: 32px 0 16px;
+            color: #1c1c1e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .terms-container p {
+            line-height: 1.6;
+            color: #3a3a3e;
+            margin-bottom: 16px;
+        }
+        .terms-container ul {
+            margin-left: 24px;
+            margin-bottom: 16px;
+            color: #3a3a3e;
+        }
+        .terms-container li {
+            margin-bottom: 8px;
         }
         .last-updated {
             color: #8e8e93;
             font-size: 14px;
             margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            color: #ff3b30;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 600px) {
+            .terms-container {
+                padding: 24px;
+            }
+            .terms-container h1 {
+                font-size: 28px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="terms-container">
-        <h1>📜 Eeeesh Malawi</h1>
+        <h1><i class="fas fa-file-contract"></i> Eeeesh Malawi</h1>
         <h2>Terms & Conditions</h2>
-        <div class="last-updated">Last updated: June 2026</div>
+        <div class="last-updated"><i class="fas fa-calendar-alt"></i> Last updated: June 2026</div>
         
-        <h2>1. Anonymous Platform</h2>
+        <h2><i class="fas fa-user-secret"></i> 1. Anonymous Platform</h2>
         <p>Eeeesh Malawi allows users to receive anonymous questions. While senders remain completely anonymous, we do NOT allow:</p>
         <ul>
-            <li>Hate speech or discrimination</li>
-            <li>Harassment, bullying, or threats</li>
-            <li>Sharing private information (doxxing)</li>
-            <li>Illegal content or activities</li>
-            <li>Impersonation of others</li>
+            <li><i class="fas fa-ban"></i> Hate speech or discrimination</li>
+            <li><i class="fas fa-ban"></i> Harassment, bullying, or threats</li>
+            <li><i class="fas fa-ban"></i> Sharing private information (doxxing)</li>
+            <li><i class="fas fa-ban"></i> Illegal content or activities</li>
+            <li><i class="fas fa-ban"></i> Impersonation of others</li>
         </ul>
         
-        <h2>2. Account Responsibility</h2>
+        <h2><i class="fas fa-user-check"></i> 2. Account Responsibility</h2>
         <p>You must be at least 13 years old to use this service. You are responsible for all content you post as replies and how you share your anonymous link.</p>
         
-        <h2>3. Privacy & Data</h2>
+        <h2><i class="fas fa-shield-alt"></i> 3. Privacy & Data</h2>
         <p>We use Firebase to store your email, name, and questions. We never share your data with third parties. Anonymous senders are truly anonymous – we do not store IP addresses or any identifying information.</p>
         
-        <h2>4. Reporting Abuse</h2>
+        <h2><i class="fas fa-flag"></i> 4. Reporting Abuse</h2>
         <p>If you receive abusive anonymous questions, you can block the sender. For severe violations, report to: <strong>abuse@eeeeshmalawi.com</strong></p>
         
-        <h2>5. Termination</h2>
+        <h2><i class="fas fa-trash-alt"></i> 5. Termination</h2>
         <p>We reserve the right to suspend or terminate accounts that violate these terms without prior notice.</p>
         
-        <h2>6. Changes to Terms</h2>
-        <p>We may update these terms from time to time. Continued use of the platform constitutes acceptance of updated terms.</p>
-        
-        <h2>7. Contact</h2>
+        <h2><i class="fas fa-envelope"></i> 6. Contact</h2>
         <p>For questions about these terms: <strong>legal@eeeeshmalawi.com</strong></p>
         
-        <a href="index.html" class="back-btn">← Back to Eeeesh Malawi</a>
+        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Eeeesh Malawi</a>
     </div>
 </body>
 </html>
