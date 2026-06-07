@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 
 const app = initializeApp(window.firebaseConfig);
 const auth = getAuth(app);
@@ -15,43 +15,29 @@ let currentUser = null;
 let currentUserData = null;
 let notificationPermission = false;
 
-// ========== ADMIN CONFIGURATION ==========
-// Admin email - ONLY nicholaskenneth29@gmail.com has admin access
-const ADMIN_EMAILS = [
-    'nicholaskenneth29@gmail.com'  // MAIN ADMIN - ONLY THIS EMAIL
-];
-
-// Check if current user is admin
-function isAdmin() {
-    return currentUser && ADMIN_EMAILS.includes(currentUser.email);
-}
-
-// Payment constants
 const REVEAL_PRICE = 5000;
 
-// ========== NOTIFICATION FUNCTIONS ==========
-function requestNotificationPermission() {
+const PAYMENT_NUMBERS = {
+    airtel: '0994071332',
+    tnm: '0886314031'
+};
+
+window.requestNotificationPermission = function() {
     if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
             notificationPermission = permission === 'granted';
             if (notificationPermission) {
-                showSuccessMessage('Notifications enabled! You will be alerted when you get new questions.');
+                showSuccessMessage('Notifications enabled!');
                 const banner = document.getElementById('notificationBanner');
                 if (banner) banner.style.display = 'none';
-            } else {
-                showSuccessMessage('You can enable notifications in browser settings to get alerts.');
             }
         });
     }
-}
+};
 
 function sendNotification(title, body) {
     if (notificationPermission && 'Notification' in window) {
-        const notification = new Notification(title, { 
-            body: body, 
-            icon: 'https://septemberdesignz.github.io/eeeesh-malawi/favicon.ico'
-        });
-        setTimeout(() => notification.close(), 5000);
+        new Notification(title, { body: body });
     }
 }
 
@@ -74,7 +60,11 @@ function showSuccessMessage(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ========== GOOGLE SIGN-IN ==========
+window.copyToClipboard = function(text) {
+    navigator.clipboard.writeText(text);
+    showSuccessMessage('Copied to clipboard!');
+};
+
 window.handleGoogleSignIn = async function() {
     const googleBtn = document.querySelector('.apple-btn.google');
     if (googleBtn) {
@@ -109,13 +99,7 @@ window.handleGoogleSignIn = async function() {
         }, 500);
         
     } catch (error) {
-        if (error.code === 'auth/popup-closed-by-user') {
-            alert('Sign-in cancelled. Please try again.');
-        } else if (error.code === 'auth/popup-blocked') {
-            alert('Popup blocked. Please allow popups for this site.');
-        } else {
-            alert('Sign-in failed: ' + error.message);
-        }
+        alert('Sign-in failed: ' + error.message);
     } finally {
         if (googleBtn) {
             googleBtn.disabled = false;
@@ -124,7 +108,6 @@ window.handleGoogleSignIn = async function() {
     }
 };
 
-// ========== APPLE SIGN-IN ==========
 window.handleAppleSignIn = async function() {
     const appleBtn = document.querySelector('.apple-btn.apple');
     if (appleBtn) {
@@ -159,13 +142,7 @@ window.handleAppleSignIn = async function() {
         }, 500);
         
     } catch (error) {
-        if (error.code === 'auth/popup-closed-by-user') {
-            alert('Sign-in cancelled. Please try again.');
-        } else if (error.code === 'auth/popup-blocked') {
-            alert('Popup blocked. Please allow popups for this site.');
-        } else {
-            alert('Apple sign-in failed: ' + error.message);
-        }
+        alert('Apple sign-in failed: ' + error.message);
     } finally {
         if (appleBtn) {
             appleBtn.disabled = false;
@@ -174,7 +151,6 @@ window.handleAppleSignIn = async function() {
     }
 };
 
-// ========== LOGOUT ==========
 window.logout = async function() {
     await signOut(auth);
     showSuccessMessage('Logged out');
@@ -183,7 +159,6 @@ window.logout = async function() {
     }, 500);
 };
 
-// ========== COPY LINK ==========
 window.copyLink = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -193,7 +168,6 @@ window.copyLink = function() {
     }
 };
 
-// ========== SHARE TO WHATSAPP ==========
 window.shareToWhatsApp = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -203,7 +177,6 @@ window.shareToWhatsApp = function() {
     }
 };
 
-// ========== SHARE AS IMAGE ==========
 window.shareAsImage = async function() {
     const linkCode = document.getElementById('anonymousLink');
     if (!linkCode) return;
@@ -253,10 +226,9 @@ window.shareAsImage = async function() {
     link.href = canvas.toDataURL();
     link.click();
     
-    showSuccessMessage('Image saved! Share it on WhatsApp or Instagram');
+    showSuccessMessage('Image saved!');
 };
 
-// ========== DELETE QUESTION ==========
 window.deleteQuestion = async function(questionId) {
     if (!confirm('Delete this question?')) return;
     try {
@@ -267,7 +239,6 @@ window.deleteQuestion = async function(questionId) {
     }
 };
 
-// ========== DELETE EXPIRED QUESTIONS ==========
 async function deleteExpiredQuestions(userId) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -283,7 +254,6 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
-// ========== REVEAL SENDER PAYMENT ==========
 window.initiateRevealPayment = async function(questionId) {
     if (!currentUser) {
         alert('Please login to reveal anonymous sender');
@@ -316,7 +286,7 @@ function showPaymentModal(questionId) {
             <div class="payment-modal-header">
                 <i class="fas fa-crown"></i>
                 <h3>Reveal Anonymous Sender</h3>
-                <button onclick="closePaymentModal()" class="close-modal">&times;</button>
+                <button class="close-modal" onclick="closePaymentModal()">&times;</button>
             </div>
             <div class="payment-modal-body">
                 <div class="payment-amount">
@@ -325,25 +295,43 @@ function showPaymentModal(questionId) {
                 </div>
                 
                 <div class="payment-instructions">
-                    <h4><i class="fas fa-info-circle"></i> How to Pay:</h4>
-                    <ol>
-                        <li>Send exactly <strong>MWK ${REVEAL_PRICE.toLocaleString()}</strong> to:</li>
-                        <li><strong>Airtel Money:</strong> 0991 234 567</li>
-                        <li><strong>TNM Mpamba:</strong> 0881 234 567</li>
-                        <li>Use reference: <strong>EEE-${questionId.slice(-8)}</strong></li>
-                        <li>Fill in the form below after sending</li>
-                    </ol>
+                    <h4><i class="fas fa-info-circle"></i> Payment Instructions</h4>
+                    <div class="instruction-step">
+                        <span class="step-number">1</span>
+                        <span>Send <strong>MWK ${REVEAL_PRICE.toLocaleString()}</strong> to:</span>
+                    </div>
+                    <div class="payment-numbers">
+                        <div class="payment-number-box airtel">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>Airtel Money: <strong>${PAYMENT_NUMBERS.airtel}</strong></span>
+                            <button onclick="copyToClipboard('${PAYMENT_NUMBERS.airtel}')" class="copy-number"><i class="fas fa-copy"></i></button>
+                        </div>
+                        <div class="payment-number-box tnm">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span>TNM Mpamba: <strong>${PAYMENT_NUMBERS.tnm}</strong></span>
+                            <button onclick="copyToClipboard('${PAYMENT_NUMBERS.tnm}')" class="copy-number"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                    <div class="instruction-step">
+                        <span class="step-number">2</span>
+                        <span>Use reference: <strong class="ref-highlight">Eeeesh Malawi</strong></span>
+                        <button onclick="copyToClipboard('Eeeesh Malawi')" class="copy-number"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="instruction-step">
+                        <span class="step-number">3</span>
+                        <span>Fill in the form below after sending payment</span>
+                    </div>
                 </div>
                 
                 <div class="payment-confirmation-form">
-                    <h4><i class="fas fa-check-circle"></i> Confirm Payment</h4>
+                    <h4><i class="fas fa-check-circle"></i> Confirm Your Payment</h4>
                     <div class="input-icon">
                         <i class="fas fa-user"></i>
                         <input type="text" id="senderName" placeholder="Your full name" class="apple-input">
                     </div>
                     <div class="input-icon">
                         <i class="fas fa-phone"></i>
-                        <input type="tel" id="phoneNumber" placeholder="Your phone number" class="apple-input">
+                        <input type="tel" id="phoneNumber" placeholder="Your phone number (e.g., 0999123456)" class="apple-input">
                     </div>
                     <div class="input-icon">
                         <i class="fas fa-exchange-alt"></i>
@@ -355,11 +343,16 @@ function showPaymentModal(questionId) {
                     </div>
                     <div class="input-icon">
                         <i class="fas fa-hashtag"></i>
-                        <input type="text" id="transactionId" placeholder="Transaction ID" class="apple-input">
+                        <input type="text" id="transactionId" placeholder="Transaction ID / Reference number" class="apple-input">
                     </div>
                     <button onclick="submitPaymentConfirmation('${questionId}')" class="apple-btn red">
                         <i class="fas fa-paper-plane"></i> Submit Payment Confirmation
                     </button>
+                </div>
+                
+                <div class="payment-info">
+                    <i class="fas fa-shield-alt"></i>
+                    Your payment is secure. Admin will verify within 24 hours.
                 </div>
             </div>
         </div>
@@ -367,10 +360,10 @@ function showPaymentModal(questionId) {
     document.body.appendChild(modal);
 }
 
-function closePaymentModal() {
+window.closePaymentModal = function() {
     const modal = document.getElementById('paymentModal');
     if (modal) modal.remove();
-}
+};
 
 window.submitPaymentConfirmation = async function(questionId) {
     const senderName = document.getElementById('senderName')?.value.trim();
@@ -380,6 +373,11 @@ window.submitPaymentConfirmation = async function(questionId) {
     
     if (!senderName || !phoneNumber || !paymentMethod || !transactionId) {
         alert('Please fill in all fields');
+        return;
+    }
+    
+    if (!phoneNumber.match(/^0[0-9]{9}$/)) {
+        alert('Please enter a valid phone number (10 digits starting with 0)');
         return;
     }
     
@@ -398,7 +396,8 @@ window.submitPaymentConfirmation = async function(questionId) {
         });
         
         closePaymentModal();
-        alert('✅ Payment confirmation submitted! Admin will verify within 24 hours.');
+        alert('✅ Payment confirmation submitted!\n\nAdmin will verify within 24 hours.\n\nYou will be notified when the sender is revealed.');
+        showSuccessMessage('Payment submitted! Awaiting verification.');
         
     } catch (error) {
         alert('Failed to submit: ' + error.message);
@@ -413,7 +412,7 @@ function showRevealedSender(questionData) {
             <div class="payment-modal-header">
                 <i class="fas fa-user-check"></i>
                 <h3>Sender Revealed!</h3>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="close-modal">&times;</button>
+                <button class="close-modal" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</button>
             </div>
             <div class="payment-modal-body">
                 <div class="revealed-info">
@@ -422,6 +421,10 @@ function showRevealedSender(questionData) {
                         <strong>Name:</strong> ${escapeHtml(questionData.senderName || 'Anonymous User')}<br>
                         <strong>Email:</strong> ${escapeHtml(questionData.senderEmail || 'hidden@example.com')}
                     </div>
+                </div>
+                <div class="payment-info">
+                    <i class="fas fa-shield-alt"></i>
+                    This information is confidential. Please respect privacy.
                 </div>
                 <button onclick="this.parentElement.parentElement.parentElement.remove()" class="apple-btn red">
                     <i class="fas fa-check"></i> Close
@@ -432,97 +435,6 @@ function showRevealedSender(questionData) {
     document.body.appendChild(modal);
 }
 
-// ========== ADMIN PANEL ==========
-window.showAdminPanel = async function() {
-    if (!isAdmin()) {
-        alert('Access denied. Admin only.');
-        return;
-    }
-    
-    const paymentsQuery = query(
-        collection(db, 'payments'),
-        where('status', '==', 'pending'),
-        orderBy('submittedAt', 'desc')
-    );
-    
-    const paymentsSnapshot = await getDocs(paymentsQuery);
-    const payments = [];
-    paymentsSnapshot.forEach(doc => {
-        payments.push({ id: doc.id, ...doc.data() });
-    });
-    
-    const modal = document.createElement('div');
-    modal.className = 'payment-modal';
-    modal.innerHTML = `
-        <div class="payment-modal-content admin-panel">
-            <div class="payment-modal-header">
-                <i class="fas fa-shield-alt"></i>
-                <h3>Admin Panel - Pending Payments</h3>
-                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="close-modal">&times;</button>
-            </div>
-            <div class="payment-modal-body">
-                ${payments.length === 0 ? '<p>No pending payments.</p>' : payments.map(p => `
-                    <div class="payment-request">
-                        <div class="payment-request-header">
-                            <strong>${escapeHtml(p.userName)}</strong>
-                            <span class="payment-status pending">Pending</span>
-                        </div>
-                        <div class="payment-request-details">
-                            <div><i class="fas fa-envelope"></i> ${escapeHtml(p.userEmail)}</div>
-                            <div><i class="fas fa-phone"></i> ${escapeHtml(p.phoneNumber)}</div>
-                            <div><i class="fas fa-exchange-alt"></i> ${p.paymentMethod === 'airtel' ? 'Airtel Money' : 'TNM Mpamba'}</div>
-                            <div><i class="fas fa-hashtag"></i> Transaction: ${escapeHtml(p.transactionId)}</div>
-                            <div><i class="fas fa-clock"></i> ${new Date(p.submittedAt).toLocaleString()}</div>
-                        </div>
-                        <div class="payment-request-actions">
-                            <button onclick="verifyPayment('${p.id}', '${p.questionId}', '${p.userId}')" class="verify-btn">
-                                <i class="fas fa-check-circle"></i> Verify & Reveal
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-};
-
-window.verifyPayment = async function(paymentId, questionId, userId) {
-    if (!confirm('Verify this payment and reveal the anonymous sender?')) return;
-    
-    try {
-        const questionRef = doc(db, 'questions', questionId);
-        const questionSnap = await getDoc(questionRef);
-        const question = questionSnap.data();
-        
-        // Get sender info - you need to store senderUid when question is asked
-        const senderRef = doc(db, 'users', question.senderUid);
-        const senderSnap = await getDoc(senderRef);
-        const sender = senderSnap.data();
-        
-        await updateDoc(questionRef, {
-            revealed: true,
-            revealedTo: userId,
-            revealedAt: new Date().toISOString(),
-            senderName: sender?.name || 'Anonymous User',
-            senderEmail: sender?.email || 'hidden@example.com'
-        });
-        
-        await updateDoc(doc(db, 'payments', paymentId), {
-            status: 'completed',
-            verifiedAt: new Date().toISOString()
-        });
-        
-        alert('Payment verified! Sender revealed to user.');
-        closePaymentModal();
-        showAdminPanel();
-        
-    } catch (error) {
-        alert('Failed to verify: ' + error.message);
-    }
-};
-
-// ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -531,12 +443,6 @@ async function loadDashboard() {
         }
         
         currentUser = user;
-        
-        // Show admin button if user is admin
-        if (isAdmin()) {
-            const adminBtn = document.getElementById('adminBtnContainer');
-            if (adminBtn) adminBtn.style.display = 'block';
-        }
         
         if (notificationPermission === false && 'Notification' in window && Notification.permission === 'default') {
             const banner = document.getElementById('notificationBanner');
@@ -556,7 +462,6 @@ async function loadDashboard() {
                     name: user.email.split('@')[0],
                     email: user.email,
                     slug: slug,
-                    provider: 'unknown',
                     createdAt: new Date().toISOString()
                 });
                 currentUserData = { name: user.email.split('@')[0], email: user.email, slug: slug };
@@ -635,7 +540,7 @@ function renderQuestions(questions) {
                 </div>
                 <div class="question-meta">
                     <small><i class="fas fa-calendar-alt"></i> Asked: ${new Date(q.askedAt).toLocaleString()}</small>
-                    ${expiryWarning ? `<small class="expiry-warning"> ${expiryWarning}</small>` : ''}
+                    ${expiryWarning}
                 </div>
                 <div class="vote-buttons">
                     <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote')">
@@ -784,8 +689,6 @@ async function loadAskPage() {
         });
     }
 }
-
-window.requestNotificationPermission = requestNotificationPermission;
 
 document.addEventListener('DOMContentLoaded', function() {
     const path = window.location.pathname;
