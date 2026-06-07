@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
-import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc, deleteDoc, getDoc, orderBy } from 'firebase/firestore';
 
 const app = initializeApp(window.firebaseConfig);
 const auth = getAuth(app);
@@ -15,6 +15,21 @@ let currentUser = null;
 let currentUserData = null;
 let notificationPermission = false;
 
+// ========== ADMIN CONFIGURATION ==========
+// Admin email - ONLY nicholaskenneth29@gmail.com has admin access
+const ADMIN_EMAILS = [
+    'nicholaskenneth29@gmail.com'  // MAIN ADMIN - ONLY THIS EMAIL
+];
+
+// Check if current user is admin
+function isAdmin() {
+    return currentUser && ADMIN_EMAILS.includes(currentUser.email);
+}
+
+// Payment constants
+const REVEAL_PRICE = 5000;
+
+// ========== NOTIFICATION FUNCTIONS ==========
 function requestNotificationPermission() {
     if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
@@ -59,6 +74,7 @@ function showSuccessMessage(message) {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// ========== GOOGLE SIGN-IN ==========
 window.handleGoogleSignIn = async function() {
     const googleBtn = document.querySelector('.apple-btn.google');
     if (googleBtn) {
@@ -108,6 +124,7 @@ window.handleGoogleSignIn = async function() {
     }
 };
 
+// ========== APPLE SIGN-IN ==========
 window.handleAppleSignIn = async function() {
     const appleBtn = document.querySelector('.apple-btn.apple');
     if (appleBtn) {
@@ -157,6 +174,7 @@ window.handleAppleSignIn = async function() {
     }
 };
 
+// ========== LOGOUT ==========
 window.logout = async function() {
     await signOut(auth);
     showSuccessMessage('Logged out');
@@ -165,6 +183,7 @@ window.logout = async function() {
     }, 500);
 };
 
+// ========== COPY LINK ==========
 window.copyLink = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -174,6 +193,7 @@ window.copyLink = function() {
     }
 };
 
+// ========== SHARE TO WHATSAPP ==========
 window.shareToWhatsApp = function() {
     const linkCode = document.getElementById('anonymousLink');
     if (linkCode) {
@@ -183,6 +203,7 @@ window.shareToWhatsApp = function() {
     }
 };
 
+// ========== SHARE AS IMAGE ==========
 window.shareAsImage = async function() {
     const linkCode = document.getElementById('anonymousLink');
     if (!linkCode) return;
@@ -235,6 +256,7 @@ window.shareAsImage = async function() {
     showSuccessMessage('Image saved! Share it on WhatsApp or Instagram');
 };
 
+// ========== DELETE QUESTION ==========
 window.deleteQuestion = async function(questionId) {
     if (!confirm('Delete this question?')) return;
     try {
@@ -245,6 +267,7 @@ window.deleteQuestion = async function(questionId) {
     }
 };
 
+// ========== DELETE EXPIRED QUESTIONS ==========
 async function deleteExpiredQuestions(userId) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -260,6 +283,246 @@ async function deleteExpiredQuestions(userId) {
     }
 }
 
+// ========== REVEAL SENDER PAYMENT ==========
+window.initiateRevealPayment = async function(questionId) {
+    if (!currentUser) {
+        alert('Please login to reveal anonymous sender');
+        return;
+    }
+    
+    const questionRef = doc(db, 'questions', questionId);
+    const questionSnap = await getDoc(questionRef);
+    const questionData = questionSnap.data();
+    
+    if (questionData.revealed && questionData.revealedTo === currentUser.uid) {
+        showRevealedSender(questionData);
+        return;
+    }
+    
+    if (questionData.revealed) {
+        alert('This sender has already been revealed to someone else.');
+        return;
+    }
+    
+    showPaymentModal(questionId);
+};
+
+function showPaymentModal(questionId) {
+    const modal = document.createElement('div');
+    modal.className = 'payment-modal';
+    modal.id = 'paymentModal';
+    modal.innerHTML = `
+        <div class="payment-modal-content">
+            <div class="payment-modal-header">
+                <i class="fas fa-crown"></i>
+                <h3>Reveal Anonymous Sender</h3>
+                <button onclick="closePaymentModal()" class="close-modal">&times;</button>
+            </div>
+            <div class="payment-modal-body">
+                <div class="payment-amount">
+                    <span class="currency">MWK</span>
+                    <span class="amount">${REVEAL_PRICE.toLocaleString()}</span>
+                </div>
+                
+                <div class="payment-instructions">
+                    <h4><i class="fas fa-info-circle"></i> How to Pay:</h4>
+                    <ol>
+                        <li>Send exactly <strong>MWK ${REVEAL_PRICE.toLocaleString()}</strong> to:</li>
+                        <li><strong>Airtel Money:</strong> 0991 234 567</li>
+                        <li><strong>TNM Mpamba:</strong> 0881 234 567</li>
+                        <li>Use reference: <strong>EEE-${questionId.slice(-8)}</strong></li>
+                        <li>Fill in the form below after sending</li>
+                    </ol>
+                </div>
+                
+                <div class="payment-confirmation-form">
+                    <h4><i class="fas fa-check-circle"></i> Confirm Payment</h4>
+                    <div class="input-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="senderName" placeholder="Your full name" class="apple-input">
+                    </div>
+                    <div class="input-icon">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="phoneNumber" placeholder="Your phone number" class="apple-input">
+                    </div>
+                    <div class="input-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                        <select id="paymentMethod" class="apple-input">
+                            <option value="">Select payment method</option>
+                            <option value="airtel">Airtel Money</option>
+                            <option value="tnm">TNM Mpamba</option>
+                        </select>
+                    </div>
+                    <div class="input-icon">
+                        <i class="fas fa-hashtag"></i>
+                        <input type="text" id="transactionId" placeholder="Transaction ID" class="apple-input">
+                    </div>
+                    <button onclick="submitPaymentConfirmation('${questionId}')" class="apple-btn red">
+                        <i class="fas fa-paper-plane"></i> Submit Payment Confirmation
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closePaymentModal() {
+    const modal = document.getElementById('paymentModal');
+    if (modal) modal.remove();
+}
+
+window.submitPaymentConfirmation = async function(questionId) {
+    const senderName = document.getElementById('senderName')?.value.trim();
+    const phoneNumber = document.getElementById('phoneNumber')?.value.trim();
+    const paymentMethod = document.getElementById('paymentMethod')?.value;
+    const transactionId = document.getElementById('transactionId')?.value.trim();
+    
+    if (!senderName || !phoneNumber || !paymentMethod || !transactionId) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    try {
+        await addDoc(collection(db, 'payments'), {
+            questionId: questionId,
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            userName: senderName,
+            phoneNumber: phoneNumber,
+            paymentMethod: paymentMethod,
+            transactionId: transactionId,
+            amount: REVEAL_PRICE,
+            status: 'pending',
+            submittedAt: new Date().toISOString()
+        });
+        
+        closePaymentModal();
+        alert('✅ Payment confirmation submitted! Admin will verify within 24 hours.');
+        
+    } catch (error) {
+        alert('Failed to submit: ' + error.message);
+    }
+};
+
+function showRevealedSender(questionData) {
+    const modal = document.createElement('div');
+    modal.className = 'payment-modal';
+    modal.innerHTML = `
+        <div class="payment-modal-content">
+            <div class="payment-modal-header">
+                <i class="fas fa-user-check"></i>
+                <h3>Sender Revealed!</h3>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="close-modal">&times;</button>
+            </div>
+            <div class="payment-modal-body">
+                <div class="revealed-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <strong>Name:</strong> ${escapeHtml(questionData.senderName || 'Anonymous User')}<br>
+                        <strong>Email:</strong> ${escapeHtml(questionData.senderEmail || 'hidden@example.com')}
+                    </div>
+                </div>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="apple-btn red">
+                    <i class="fas fa-check"></i> Close
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// ========== ADMIN PANEL ==========
+window.showAdminPanel = async function() {
+    if (!isAdmin()) {
+        alert('Access denied. Admin only.');
+        return;
+    }
+    
+    const paymentsQuery = query(
+        collection(db, 'payments'),
+        where('status', '==', 'pending'),
+        orderBy('submittedAt', 'desc')
+    );
+    
+    const paymentsSnapshot = await getDocs(paymentsQuery);
+    const payments = [];
+    paymentsSnapshot.forEach(doc => {
+        payments.push({ id: doc.id, ...doc.data() });
+    });
+    
+    const modal = document.createElement('div');
+    modal.className = 'payment-modal';
+    modal.innerHTML = `
+        <div class="payment-modal-content admin-panel">
+            <div class="payment-modal-header">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Admin Panel - Pending Payments</h3>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="close-modal">&times;</button>
+            </div>
+            <div class="payment-modal-body">
+                ${payments.length === 0 ? '<p>No pending payments.</p>' : payments.map(p => `
+                    <div class="payment-request">
+                        <div class="payment-request-header">
+                            <strong>${escapeHtml(p.userName)}</strong>
+                            <span class="payment-status pending">Pending</span>
+                        </div>
+                        <div class="payment-request-details">
+                            <div><i class="fas fa-envelope"></i> ${escapeHtml(p.userEmail)}</div>
+                            <div><i class="fas fa-phone"></i> ${escapeHtml(p.phoneNumber)}</div>
+                            <div><i class="fas fa-exchange-alt"></i> ${p.paymentMethod === 'airtel' ? 'Airtel Money' : 'TNM Mpamba'}</div>
+                            <div><i class="fas fa-hashtag"></i> Transaction: ${escapeHtml(p.transactionId)}</div>
+                            <div><i class="fas fa-clock"></i> ${new Date(p.submittedAt).toLocaleString()}</div>
+                        </div>
+                        <div class="payment-request-actions">
+                            <button onclick="verifyPayment('${p.id}', '${p.questionId}', '${p.userId}')" class="verify-btn">
+                                <i class="fas fa-check-circle"></i> Verify & Reveal
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+};
+
+window.verifyPayment = async function(paymentId, questionId, userId) {
+    if (!confirm('Verify this payment and reveal the anonymous sender?')) return;
+    
+    try {
+        const questionRef = doc(db, 'questions', questionId);
+        const questionSnap = await getDoc(questionRef);
+        const question = questionSnap.data();
+        
+        // Get sender info - you need to store senderUid when question is asked
+        const senderRef = doc(db, 'users', question.senderUid);
+        const senderSnap = await getDoc(senderRef);
+        const sender = senderSnap.data();
+        
+        await updateDoc(questionRef, {
+            revealed: true,
+            revealedTo: userId,
+            revealedAt: new Date().toISOString(),
+            senderName: sender?.name || 'Anonymous User',
+            senderEmail: sender?.email || 'hidden@example.com'
+        });
+        
+        await updateDoc(doc(db, 'payments', paymentId), {
+            status: 'completed',
+            verifiedAt: new Date().toISOString()
+        });
+        
+        alert('Payment verified! Sender revealed to user.');
+        closePaymentModal();
+        showAdminPanel();
+        
+    } catch (error) {
+        alert('Failed to verify: ' + error.message);
+    }
+};
+
+// ========== LOAD DASHBOARD ==========
 async function loadDashboard() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -268,6 +531,12 @@ async function loadDashboard() {
         }
         
         currentUser = user;
+        
+        // Show admin button if user is admin
+        if (isAdmin()) {
+            const adminBtn = document.getElementById('adminBtnContainer');
+            if (adminBtn) adminBtn.style.display = 'block';
+        }
         
         if (notificationPermission === false && 'Notification' in window && Notification.permission === 'default') {
             const banner = document.getElementById('notificationBanner');
@@ -314,7 +583,7 @@ async function loadDashboard() {
                 });
                 
                 if (questions.length > previousCount && previousCount > 0) {
-                    sendNotification('🔔 New Anonymous Question!', `Someone asked you a question on Eeeesh Malawi! Check your inbox.`);
+                    sendNotification('🔔 New Anonymous Question!', `Someone asked you a question on Eeeesh Malawi!`);
                 }
                 previousCount = questions.length;
                 
@@ -369,13 +638,26 @@ function renderQuestions(questions) {
                     ${expiryWarning ? `<small class="expiry-warning"> ${expiryWarning}</small>` : ''}
                 </div>
                 <div class="vote-buttons">
-                    <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote', this)">
+                    <button class="vote-btn" onclick="voteQuestion('${q.id}', 'upvote')">
                         <i class="fas fa-thumbs-up"></i> ${q.upvotes || 0}
                     </button>
-                    <button class="vote-btn" onclick="voteQuestion('${q.id}', 'downvote', this)">
+                    <button class="vote-btn" onclick="voteQuestion('${q.id}', 'downvote')">
                         <i class="fas fa-thumbs-down"></i> ${q.downvotes || 0}
                     </button>
                 </div>
+                ${!q.revealed ? 
+                    `<button onclick="initiateRevealPayment('${q.id}')" class="reveal-btn">
+                        <i class="fas fa-eye"></i> Reveal Sender (MWK ${REVEAL_PRICE.toLocaleString()})
+                    </button>` : 
+                    (q.revealedTo === currentUser?.uid ? 
+                        `<button onclick='showRevealedSender(${JSON.stringify(q).replace(/'/g, "\\'")})' class="reveal-btn revealed">
+                            <i class="fas fa-eye"></i> View Sender
+                        </button>` : 
+                        `<button class="reveal-btn disabled" disabled>
+                            <i class="fas fa-lock"></i> Already Revealed
+                        </button>`
+                    )
+                }
             </div>
         `;
     }).join('');
@@ -442,7 +724,8 @@ window.sendAnonymousQuestion = async function() {
             question: question,
             upvotes: 0,
             downvotes: 0,
-            askedAt: new Date().toISOString()
+            askedAt: new Date().toISOString(),
+            senderUid: currentUser?.uid || null
         });
         
         document.getElementById('anonymousQuestion').value = '';
