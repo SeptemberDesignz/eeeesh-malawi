@@ -1,6 +1,6 @@
 // Import Firebase modules
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, collection, doc, addDoc, query, where, getDocs, updateDoc, onSnapshot, increment, setDoc } from 'firebase/firestore';
 
 // Initialize Firebase with your config
@@ -8,6 +8,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// Save login state - user stays logged in
+setPersistence(auth, browserLocalPersistence)
+    .catch((error) => {
+        console.error("Persistence error:", error);
+    });
 
 let currentUser = null;
 
@@ -114,7 +120,6 @@ window.logout = function() {
 
 // Copy link
 window.copyLink = function(link) {
-    // Clean the link text (remove the icon text if any)
     const cleanLink = link.replace('🔗', '').replace('Loading...', '').trim();
     navigator.clipboard.writeText(cleanLink);
     alert('✅ Link copied! Share it on WhatsApp or Facebook.');
@@ -181,6 +186,7 @@ function renderQuestions(questions) {
     // Sort by newest first
     questions.sort((a, b) => new Date(b.askedAt) - new Date(a.askedAt));
     
+    // NO REPLY BUTTON - only show question and vote buttons
     container.innerHTML = questions.map(q => `
         <div class="question-card" data-id="${q.id}">
             <div class="question-text">
@@ -195,21 +201,6 @@ function renderQuestions(questions) {
                     <i class="fas fa-thumbs-down"></i> ${q.downvotes || 0}
                 </button>
             </div>
-            ${q.reply ? `
-                <div class="reply-text">
-                    <i class="fas fa-reply-all"></i> Your reply: ${escapeHtml(q.reply)}
-                </div>
-            ` : `
-                <div class="reply-area">
-                    <div class="reply-input-wrapper">
-                        <i class="fas fa-reply"></i>
-                        <input type="text" id="reply-${q.id}" class="reply-input" placeholder="Write your public reply...">
-                    </div>
-                    <button onclick="postReply('${q.id}')" class="apple-btn red" style="margin-top:8px;">
-                        <i class="fas fa-paper-plane"></i> Post reply
-                    </button>
-                </div>
-            `}
         </div>
     `).join('');
 }
@@ -230,24 +221,6 @@ window.voteQuestion = async function(questionId, voteType) {
             downvotes: increment(1)
         });
     }
-};
-
-window.postReply = async function(questionId) {
-    const replyInput = document.getElementById(`reply-${questionId}`);
-    const reply = replyInput?.value.trim();
-    
-    if (!reply) {
-        alert('Write a reply first');
-        return;
-    }
-    
-    const questionRef = doc(db, 'questions', questionId);
-    await updateDoc(questionRef, {
-        reply: reply,
-        repliedAt: new Date().toISOString()
-    });
-    
-    alert('✅ Reply posted!');
 };
 
 // Send anonymous question
@@ -328,10 +301,26 @@ async function loadAskPage() {
     }
 }
 
-// Initialize based on page
-const path = window.location.pathname;
-if (path.includes('dashboard.html')) {
-    loadDashboard();
-} else if (path.includes('ask.html')) {
-    loadAskPage();
-}
+// ========== FIXED AUTO-LOGIN ==========
+// This runs when the page loads and checks if user is already logged in
+document.addEventListener('DOMContentLoaded', function() {
+    const path = window.location.pathname;
+    
+    // Only run auto-login check on index/login page
+    if (path.includes('index.html') || path === '/' || path.endsWith('/eeeesh-malawi/') || path === '/eeeesh-malawi/') {
+        console.log('Checking auto-login...');
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log('User found, redirecting to dashboard:', user.email);
+                window.location.href = getBaseUrl() + 'dashboard.html';
+            } else {
+                console.log('No user logged in');
+            }
+        });
+    } else if (path.includes('dashboard.html')) {
+        loadDashboard();
+    } else if (path.includes('ask.html')) {
+        loadAskPage();
+    }
+});
