@@ -108,7 +108,7 @@ window.copyToClipboard = function(text) {
 
 // ========== GOOGLE SIGN-IN ==========
 window.handleGoogleSignIn = async function() {
-    const googleBtn = document.querySelector('.apple-btn.google');
+    const googleBtn = document.querySelector('.google-btn');
     if (googleBtn) {
         googleBtn.disabled = true;
         googleBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Signing in...';
@@ -152,7 +152,7 @@ window.handleGoogleSignIn = async function() {
 
 // ========== APPLE SIGN-IN ==========
 window.handleAppleSignIn = async function() {
-    const appleBtn = document.querySelector('.apple-btn.apple');
+    const appleBtn = document.querySelector('.apple-btn-pro');
     if (appleBtn) {
         appleBtn.disabled = true;
         appleBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Signing in...';
@@ -526,8 +526,6 @@ window.submitPaymentConfirmation = async function(questionId) {
 
 // ========== SHOW REVEALED SENDER ==========
 window.showRevealedSender = function(questionData) {
-    console.log("Showing revealed sender:", questionData);
-    
     const modal = document.createElement('div');
     modal.className = 'payment-modal';
     modal.id = 'revealedModal';
@@ -727,56 +725,71 @@ window.sendAnonymousQuestion = async function() {
     const urlParams = new URLSearchParams(window.location.search);
     const toSlug = urlParams.get('to');
     
+    // Validation
     if (!question) {
         alert('Please write a question');
         return;
     }
+    
     if (question.length < 5) {
         alert('Question must be at least 5 characters');
         return;
     }
+    
+    if (question.length > 500) {
+        alert('Question must be less than 500 characters');
+        return;
+    }
+    
     if (!toSlug) {
-        alert('Invalid link');
+        alert('Invalid link. Please use a valid anonymous link.');
         return;
     }
     
     const statusDiv = document.getElementById('messageStatus');
-    const sendBtn = document.querySelector('.apple-btn.red');
+    const sendBtn = document.getElementById('sendQuestionBtn');
     
+    // Show loading state
     statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Sending anonymously...';
+    statusDiv.style.color = '#ff3b30';
     if (sendBtn) sendBtn.disabled = true;
     
     try {
-        // Get recipient user
-        const q = query(collection(db, 'users'), where('slug', '==', toSlug));
+        // Find recipient user by slug
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('slug', '==', toSlug));
         const querySnapshot = await getDocs(q);
         
         if (querySnapshot.empty) {
-            statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> User not found';
+            statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> User not found. The link may be invalid.';
+            statusDiv.style.color = '#ff3b30';
             return;
         }
         
         const recipient = querySnapshot.docs[0];
         
+        // Get sender info if logged in
         let senderName = 'Anonymous User';
         let senderEmail = 'hidden@example.com';
         
-        // Check if user is logged in
         if (currentUser && currentUser.uid) {
-            const senderRef = doc(db, 'users', currentUser.uid);
-            const senderSnap = await getDoc(senderRef);
-            if (senderSnap.exists()) {
-                const senderData = senderSnap.data();
-                senderName = senderData.name || currentUser.email.split('@')[0];
-                senderEmail = currentUser.email;
+            try {
+                const senderRef = doc(db, 'users', currentUser.uid);
+                const senderSnap = await getDoc(senderRef);
+                if (senderSnap.exists()) {
+                    const senderData = senderSnap.data();
+                    senderName = senderData.name || currentUser.email.split('@')[0];
+                    senderEmail = currentUser.email;
+                } else {
+                    senderName = currentUser.email.split('@')[0];
+                    senderEmail = currentUser.email;
+                }
+            } catch (err) {
+                console.error("Error getting sender info:", err);
             }
         }
-        // For complete anonymity, we don't store any identifying info
-        // The recipient can only reveal if they pay, but since the sender is anonymous,
-        // we need to store a way to identify them. For now, we store a placeholder.
-        // In a real production system, you would store an encrypted token.
         
-        // Store question with sender information
+        // Save question to Firestore
         await addDoc(collection(db, 'questions'), {
             toUid: recipient.data().uid,
             toSlug: toSlug,
@@ -790,19 +803,23 @@ window.sendAnonymousQuestion = async function() {
             revealed: false
         });
         
+        // Success!
         document.getElementById('anonymousQuestion').value = '';
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously!';
+        document.getElementById('charCount').textContent = '0';
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Sent anonymously! Your question has been delivered.';
         statusDiv.style.color = '#2c5f2d';
         
         showSuccessMessage('✅ Your anonymous question has been sent!');
         
+        // Clear success message after 5 seconds
         setTimeout(() => { 
             statusDiv.innerHTML = ''; 
-            statusDiv.style.color = '';
-        }, 3000);
+        }, 5000);
+        
     } catch (error) {
         console.error('Error sending question:', error);
-        statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to send';
+        statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to send. Please try again.';
+        statusDiv.style.color = '#ff3b30';
     } finally {
         if (sendBtn) sendBtn.disabled = false;
     }

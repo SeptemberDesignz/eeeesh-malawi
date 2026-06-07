@@ -2,14 +2,110 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ask anonymously • Eeeesh Malawi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Fix for textarea sizing - Mobile & Desktop */
+        .ask-container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .question-input-wrapper {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .question-input-wrapper i {
+            position: absolute;
+            top: 18px;
+            left: 16px;
+            color: #8e8e93;
+            font-size: 18px;
+            z-index: 1;
+        }
+        .question-input-wrapper textarea {
+            width: 100%;
+            padding: 16px 18px 16px 48px;
+            font-size: 16px;
+            border: 1px solid #e5e5ea;
+            border-radius: 20px;
+            background: white;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.2s ease;
+            line-height: 1.5;
+        }
+        .question-input-wrapper textarea:focus {
+            outline: none;
+            border-color: #ff3b30;
+            box-shadow: 0 0 0 3px rgba(255,59,48,0.1);
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+        .sender-info-warning {
+            background: #fff3e0;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff9800;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .sender-info-warning i {
+            font-size: 20px;
+            color: #ff9800;
+            margin-top: 2px;
+        }
+        .sender-info-warning div {
+            flex: 1;
+        }
+        .sender-info-warning strong {
+            font-size: 14px;
+            color: #1c1c1e;
+        }
+        .sender-info-warning p {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .status-message {
+            text-align: center;
+            margin-top: 16px;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        @media (max-width: 600px) {
+            .question-input-wrapper textarea {
+                font-size: 14px;
+                padding: 14px 16px 14px 44px;
+                min-height: 100px;
+            }
+            .sender-info-warning {
+                padding: 12px;
+            }
+            .sender-info-warning i {
+                font-size: 18px;
+            }
+            .status-message {
+                font-size: 13px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="hero">
-        <div class="glass-card">
+        <div class="glass-card ask-container">
             <div class="logo">
                 <i class="fas fa-user-secret"></i>
                 <h1>Ask <span>anonymously</span></h1>
@@ -18,28 +114,33 @@
                 <i class="fas fa-question-circle"></i> Ask <strong id="recipientName">...</strong> anything — they'll never know it's you.
             </p>
             
-            <!-- Sender Info Section (Hidden until they ask) -->
-            <div class="sender-info-warning" style="background: #fff3e0; border-radius: 16px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
-                <i class="fas fa-info-circle" style="color: #ff9800;"></i>
-                <strong style="margin-left: 8px;">Your identity is safe</strong>
-                <p style="font-size: 12px; margin-top: 8px; color: #666;">Your question is 100% anonymous right now. However, if the recipient pays MWK 5,000, they can reveal who sent this question.</p>
+            <!-- Sender Info Warning -->
+            <div class="sender-info-warning">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Your identity is safe</strong>
+                    <p>Your question is 100% anonymous right now. However, if the recipient pays MWK 5,000, they can reveal who sent this question.</p>
+                </div>
             </div>
             
+            <!-- Question Input -->
             <div class="question-input-wrapper">
                 <i class="fas fa-pen-fancy"></i>
-                <textarea id="anonymousQuestion" rows="5" maxlength="500" placeholder="Type your anonymous question here... (min 5 characters, max 500)" class="apple-input"></textarea>
+                <textarea id="anonymousQuestion" rows="4" maxlength="500" placeholder="Type your anonymous question here... (min 5 characters, max 500)"></textarea>
             </div>
             <div class="char-counter">
                 <span id="charCount">0</span>/500 characters
             </div>
             
-            <button onclick="sendAnonymousQuestion()" class="apple-btn red">
+            <!-- Send Button -->
+            <button onclick="sendAnonymousQuestion()" class="apple-btn red" id="sendQuestionBtn">
                 <i class="fas fa-paper-plane"></i> Send anonymously
             </button>
             <div id="messageStatus" class="status-message"></div>
             
-            <hr>
+            <hr style="margin: 24px 0;">
             
+            <!-- Privacy Box -->
             <div class="privacy-box">
                 <i class="fas fa-shield-alt"></i>
                 <div>
@@ -48,6 +149,7 @@
                 </div>
             </div>
             
+            <!-- Back Link -->
             <p class="back-link">
                 <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Eeeesh Malawi</a>
             </p>
